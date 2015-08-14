@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -252,6 +253,7 @@ namespace PSLauncher
             {
                 // magic string to login to planetside from the actual game
                 startPlanetSide(planetsidePath, Path.GetDirectoryName(planetsidePath), "/K:StagingTest " + launchArgs.Text);
+                setProgress(100);
             }
             else
             {
@@ -729,6 +731,19 @@ namespace PSLauncher
                 password.Enabled = true;
             }
         }
+
+        private void LauncherForm_ResizeBegin(object sender, EventArgs e)
+        {
+            splitContainer1.Panel2.SuspendLayout();
+        }
+
+        private void LauncherForm_ResizeEnd(object sender, EventArgs e)
+        {
+            Win32.SuspendPainting(splitContainer1.Panel2.Handle);
+            splitContainer1.Panel2.ResumeLayout();
+            Win32.ResumePainting(splitContainer1.Panel2.Handle);
+            this.Refresh();
+        }
     }
 
     public static class QueryExtensions
@@ -739,6 +754,24 @@ namespace PSLauncher
                                            from value in nvc.GetValues(key)
                                            select string.Format("{0}={1}", key, value);
             return string.Join("&", segments);
+        }
+    }
+    public static class Win32
+    {
+
+        public const int WM_SETREDRAW = 0x0b;
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        public static void SuspendPainting(IntPtr hWnd)
+        {
+            SendMessage(hWnd, WM_SETREDRAW, (IntPtr)0, IntPtr.Zero);
+        }
+
+        public static void ResumePainting(IntPtr hWnd)
+        {
+            SendMessage(hWnd, WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
         }
     }
 }
