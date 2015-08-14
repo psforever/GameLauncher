@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PSLauncher
@@ -20,6 +21,13 @@ namespace PSLauncher
         Live
     }
 
+    public enum GameState
+    {
+        Stopped,
+        Launching,
+        Running
+    }
+
     public partial class LauncherForm : Form
     {
         Process psProcess;
@@ -28,6 +36,7 @@ namespace PSLauncher
         int DEFAULT_WEB_TIMEOUT = 5000;
         string planetsidePath = "";
         bool planetsidePathValid = false;
+        GameState gameState = GameState.Stopped;
 
         LaunchDomain domain = LaunchDomain.Live;
 
@@ -126,15 +135,19 @@ namespace PSLauncher
                 {
                     this.launchGame.Enabled = true;
                     this.launchGame.Text = "Launch";
+                    this.launchProgress.Visible = false;
                 });
             }
             else
             {
                 this.launchGame.Enabled = true;
                 this.launchGame.Text = "Launch";
+                this.launchProgress.Visible = false;
             }
 
             setProgress(0);
+
+            gameState = GameState.Stopped;
         }
 
         private void startLaunching()
@@ -145,6 +158,7 @@ namespace PSLauncher
                 {
                     this.launchGame.Enabled = false;
                     this.launchGame.Text = "Launching...";
+                    this.launchProgress.Visible = true;
                     setProgress(0);
                 });
             }
@@ -152,8 +166,11 @@ namespace PSLauncher
             {
                 this.launchGame.Enabled = false;
                 this.launchGame.Text = "Launching...";
+                this.launchProgress.Visible = true;
                 setProgress(0);
             }
+
+            gameState = GameState.Launching;
         }
 
         private void setProgress(int prog)
@@ -238,8 +255,10 @@ namespace PSLauncher
             }
             else
             {
-                Thread worker = new Thread(this.doLogin);
-                worker.Start();
+                Task.Factory.StartNew(() =>
+                {
+                    this.doLogin();
+                });
             }
         }
 
@@ -548,11 +567,12 @@ namespace PSLauncher
             psProcess.OutputDataReceived += new DataReceivedEventHandler(ps_OutputDataReceived);
             psProcess.EnableRaisingEvents = true;
 
+            addLine("ProcessStart: \"" + exe + "\" " + args);
             psProcess.Start();
 
             psProcess.BeginErrorReadLine();
             psProcess.BeginOutputReadLine();
-            addLine("ProcessStart: \"" + exe + "\" " + args);
+            
 
             gameRunning();
         }
@@ -595,16 +615,17 @@ namespace PSLauncher
                 this.launchGame.Enabled = false;
                 this.launchGame.Text = "Running";
             }
+
+            gameState = GameState.Running;
         }
 
         void gameStopped()
         {
-            
+            this.stopLaunching();
         }
 
         void ps_Exited(object sender, EventArgs e)
         {
-            this.stopLaunching();
             gameStopped();
         }
 
@@ -687,9 +708,17 @@ namespace PSLauncher
             a.ShowDialog(this);
         }
 
-        private void skipLauncher_CheckedChanged(object sender, EventArgs e)
+        private void loginFormChanged(object sender, EventArgs e)
         {
-            if(skipLauncher.Checked)
+            if(gameState == GameState.Stopped)
+            {
+                if (username.Text.Length > 0 && password.Text.Length > 0 || skipLauncher.Checked)
+                    launchGame.Enabled = true;
+                else
+                    launchGame.Enabled = false;
+            }
+
+            if (skipLauncher.Checked)
             {
                 username.Enabled = false;
                 password.Enabled = false;

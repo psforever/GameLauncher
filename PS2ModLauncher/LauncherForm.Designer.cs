@@ -35,14 +35,13 @@
             this.directorySearcher1 = new System.DirectoryServices.DirectorySearcher();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.launchProgress = new System.Windows.Forms.ProgressBar();
             this.planetsideVersion = new System.Windows.Forms.Label();
             this.skipLauncher = new System.Windows.Forms.CheckBox();
-            this.launchMessage = new System.Windows.Forms.Label();
             this.passwordLabel = new System.Windows.Forms.Label();
             this.usernameLabel = new System.Windows.Forms.Label();
             this.password = new System.Windows.Forms.TextBox();
             this.username = new System.Windows.Forms.TextBox();
-            this.launchProgress = new System.Windows.Forms.ProgressBar();
             this.loggingCheckBox = new System.Windows.Forms.CheckBox();
             this.label10 = new System.Windows.Forms.Label();
             this.launchArgs = new System.Windows.Forms.TextBox();
@@ -50,6 +49,7 @@
             this.launchGame = new System.Windows.Forms.Button();
             this.selectDirectory = new System.Windows.Forms.Button();
             this.planetside2PathTextField = new System.Windows.Forms.TextBox();
+            this.launchMessage = new System.Windows.Forms.Label();
             this.ps_consoleOutput = new System.Windows.Forms.TextBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -101,20 +101,20 @@
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            this.splitContainer1.IsSplitterFixed = true;
             this.splitContainer1.Location = new System.Drawing.Point(3, 3);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.launchProgress);
             this.splitContainer1.Panel1.Controls.Add(this.planetsideVersion);
             this.splitContainer1.Panel1.Controls.Add(this.skipLauncher);
-            this.splitContainer1.Panel1.Controls.Add(this.launchMessage);
             this.splitContainer1.Panel1.Controls.Add(this.passwordLabel);
             this.splitContainer1.Panel1.Controls.Add(this.usernameLabel);
             this.splitContainer1.Panel1.Controls.Add(this.password);
             this.splitContainer1.Panel1.Controls.Add(this.username);
-            this.splitContainer1.Panel1.Controls.Add(this.launchProgress);
             this.splitContainer1.Panel1.Controls.Add(this.loggingCheckBox);
             this.splitContainer1.Panel1.Controls.Add(this.label10);
             this.splitContainer1.Panel1.Controls.Add(this.launchArgs);
@@ -122,14 +122,26 @@
             this.splitContainer1.Panel1.Controls.Add(this.launchGame);
             this.splitContainer1.Panel1.Controls.Add(this.selectDirectory);
             this.splitContainer1.Panel1.Controls.Add(this.planetside2PathTextField);
-            this.splitContainer1.Panel1MinSize = 130;
+            this.splitContainer1.Panel1.Controls.Add(this.launchMessage);
+            this.splitContainer1.Panel1MinSize = 125;
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.ps_consoleOutput);
             this.splitContainer1.Size = new System.Drawing.Size(621, 279);
-            this.splitContainer1.SplitterDistance = 150;
+            this.splitContainer1.SplitterDistance = this.splitContainer1.Panel1MinSize;
             this.splitContainer1.TabIndex = 0;
+            // 
+            // launchProgress
+            // 
+            this.launchProgress.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.launchProgress.Location = new System.Drawing.Point(9, 102);
+            this.launchProgress.Name = "launchProgress";
+            this.launchProgress.Size = new System.Drawing.Size(291, 18);
+            this.launchProgress.TabIndex = 16;
+            this.launchProgress.Tag = "";
+            this.launchProgress.UseWaitCursor = true;
+            this.launchProgress.Visible = false;
             // 
             // planetsideVersion
             // 
@@ -142,29 +154,18 @@
             // skipLauncher
             // 
             this.skipLauncher.AutoSize = true;
-            this.skipLauncher.Location = new System.Drawing.Point(204, 23);
+            this.skipLauncher.Location = new System.Drawing.Point(205, 9);
             this.skipLauncher.Name = "skipLauncher";
             this.skipLauncher.Size = new System.Drawing.Size(95, 17);
             this.skipLauncher.TabIndex = 23;
             this.skipLauncher.Text = "Skip Launcher";
             this.skipLauncher.UseVisualStyleBackColor = true;
-            this.skipLauncher.CheckedChanged += new System.EventHandler(this.skipLauncher_CheckedChanged);
-            // 
-            // launchMessage
-            // 
-            this.launchMessage.ForeColor = System.Drawing.Color.Red;
-            this.launchMessage.Location = new System.Drawing.Point(7, 107);
-            this.launchMessage.Name = "launchMessage";
-            this.launchMessage.Size = new System.Drawing.Size(247, 27);
-            this.launchMessage.TabIndex = 22;
-            this.launchMessage.Text = "label1";
-            this.launchMessage.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.launchMessage.Visible = false;
+            this.skipLauncher.CheckedChanged += new System.EventHandler(this.loginFormChanged);
             // 
             // passwordLabel
             // 
             this.passwordLabel.AutoSize = true;
-            this.passwordLabel.Location = new System.Drawing.Point(7, 59);
+            this.passwordLabel.Location = new System.Drawing.Point(8, 45);
             this.passwordLabel.Name = "passwordLabel";
             this.passwordLabel.Size = new System.Drawing.Size(53, 13);
             this.passwordLabel.TabIndex = 21;
@@ -173,7 +174,7 @@
             // usernameLabel
             // 
             this.usernameLabel.AutoSize = true;
-            this.usernameLabel.Location = new System.Drawing.Point(5, 28);
+            this.usernameLabel.Location = new System.Drawing.Point(6, 14);
             this.usernameLabel.Name = "usernameLabel";
             this.usernameLabel.Size = new System.Drawing.Size(55, 13);
             this.usernameLabel.TabIndex = 20;
@@ -182,34 +183,25 @@
             // password
             // 
             this.password.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.password.Location = new System.Drawing.Point(66, 55);
+            this.password.Location = new System.Drawing.Point(67, 41);
             this.password.Name = "password";
             this.password.Size = new System.Drawing.Size(123, 20);
             this.password.TabIndex = 19;
             this.password.UseSystemPasswordChar = true;
+            this.password.TextChanged += new System.EventHandler(this.loginFormChanged);
             // 
             // username
             // 
-            this.username.Location = new System.Drawing.Point(66, 25);
+            this.username.Location = new System.Drawing.Point(67, 11);
             this.username.Name = "username";
             this.username.Size = new System.Drawing.Size(123, 20);
             this.username.TabIndex = 18;
-            // 
-            // launchProgress
-            // 
-            this.launchProgress.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.launchProgress.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
-            this.launchProgress.Location = new System.Drawing.Point(0, 137);
-            this.launchProgress.Name = "launchProgress";
-            this.launchProgress.Size = new System.Drawing.Size(621, 13);
-            this.launchProgress.TabIndex = 16;
-            this.launchProgress.Tag = "";
-            this.launchProgress.UseWaitCursor = true;
+            this.username.TextChanged += new System.EventHandler(this.loginFormChanged);
             // 
             // loggingCheckBox
             // 
             this.loggingCheckBox.AutoSize = true;
-            this.loggingCheckBox.Location = new System.Drawing.Point(204, 46);
+            this.loggingCheckBox.Location = new System.Drawing.Point(205, 32);
             this.loggingCheckBox.Name = "loggingCheckBox";
             this.loggingCheckBox.Size = new System.Drawing.Size(64, 17);
             this.loggingCheckBox.TabIndex = 15;
@@ -249,8 +241,9 @@
             // launchGame
             // 
             this.launchGame.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.launchGame.Enabled = false;
             this.launchGame.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.launchGame.Location = new System.Drawing.Point(66, 81);
+            this.launchGame.Location = new System.Drawing.Point(67, 67);
             this.launchGame.Name = "launchGame";
             this.launchGame.Size = new System.Drawing.Size(123, 23);
             this.launchGame.TabIndex = 6;
@@ -280,6 +273,17 @@
             this.planetside2PathTextField.Text = "Path to PlanetSide folder";
             this.planetside2PathTextField.Click += new System.EventHandler(this.button1_Click);
             // 
+            // launchMessage
+            // 
+            this.launchMessage.ForeColor = System.Drawing.Color.Red;
+            this.launchMessage.Location = new System.Drawing.Point(8, 93);
+            this.launchMessage.Name = "launchMessage";
+            this.launchMessage.Size = new System.Drawing.Size(247, 27);
+            this.launchMessage.TabIndex = 22;
+            this.launchMessage.Text = "label1";
+            this.launchMessage.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.launchMessage.Visible = false;
+            // 
             // ps_consoleOutput
             // 
             this.ps_consoleOutput.BackColor = System.Drawing.Color.WhiteSmoke;
@@ -289,7 +293,7 @@
             this.ps_consoleOutput.Name = "ps_consoleOutput";
             this.ps_consoleOutput.ReadOnly = true;
             this.ps_consoleOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.ps_consoleOutput.Size = new System.Drawing.Size(621, 125);
+            this.ps_consoleOutput.Size = new System.Drawing.Size(621, 150);
             this.ps_consoleOutput.TabIndex = 1;
             // 
             // tabControl1
