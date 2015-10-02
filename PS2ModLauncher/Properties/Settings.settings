@@ -5,11 +5,8 @@
     <Setting Name="PSPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="Logging" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
     <Setting Name="ExtraArgs" Type="System.String" Scope="User">
-      <Value Profile="(Default)">               </Value>
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

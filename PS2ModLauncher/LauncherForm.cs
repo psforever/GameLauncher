@@ -37,6 +37,7 @@ namespace PSLauncher
         int DEFAULT_WEB_TIMEOUT = 5000;
         string planetsidePath = "";
         bool planetsidePathValid = false;
+        bool bGameRunning = false;
         GameState gameState = GameState.Stopped;
 
         LaunchDomain domain = LaunchDomain.Live;
@@ -66,7 +67,18 @@ namespace PSLauncher
 
             planetside2PathTextField.Text = Settings.Default.PSPath;
             launchArgs.Text = Settings.Default.ExtraArgs;
-            loggingCheckBox.Checked = Settings.Default.Logging;
+        }
+
+        private void LauncherForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (this.bGameRunning)
+            {
+                DialogResult res = MessageBox.Show( "Are you sure you want to exit while managing PlanetSide PID " + psProcess.Id + "?" +
+                    Environment.NewLine + "You won't see any debugging output if you do.", "Confirm exit", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (res == DialogResult.No)
+                    e.Cancel = true;
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -618,12 +630,14 @@ namespace PSLauncher
                 this.launchGame.Text = "Running";
             }
 
+            bGameRunning = true;
             gameState = GameState.Running;
         }
 
         void gameStopped()
         {
             this.stopLaunching();
+            bGameRunning = false;
         }
 
         void ps_Exited(object sender, EventArgs e)
@@ -692,11 +706,6 @@ namespace PSLauncher
             }
 
             return Environment.GetEnvironmentVariable("ProgramFiles");
-        }
-
-        private void loggingCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            Settings.Default.Logging = loggingCheckBox.Checked;
         }
 
         private void loginWebBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)

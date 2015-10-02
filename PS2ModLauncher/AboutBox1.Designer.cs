@@ -53,7 +53,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(328, 23);
             this.label1.TabIndex = 26;
-            this.label1.Text = "PlanetSide 1 Launcher";
+            this.label1.Text = "PS1 GameLauncher";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -63,7 +63,7 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(328, 23);
             this.label2.TabIndex = 27;
-            this.label2.Text = "Designed by Chord for PSEmu";
+            this.label2.Text = "Designed by Chord for PSForever";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
@@ -75,7 +75,7 @@
             this.linkLabel1.Size = new System.Drawing.Size(328, 22);
             this.linkLabel1.TabIndex = 28;
             this.linkLabel1.TabStop = true;
-            this.linkLabel1.Text = "http://www.planetside-universe.com/showthread.php?p=961247";
+            this.linkLabel1.Text = "http://psforever.net";
             this.linkLabel1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
@@ -107,7 +107,7 @@
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "AboutBox1";
+            this.Text = "About PS1 GameLauncher";
             this.ResumeLayout(false);
 
         }

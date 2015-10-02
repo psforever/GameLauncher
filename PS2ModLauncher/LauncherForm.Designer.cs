@@ -39,7 +39,6 @@
             this.usernameLabel = new System.Windows.Forms.Label();
             this.password = new System.Windows.Forms.TextBox();
             this.username = new System.Windows.Forms.TextBox();
-            this.loggingCheckBox = new System.Windows.Forms.CheckBox();
             this.label10 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.launchGame = new System.Windows.Forms.Button();
@@ -87,7 +86,6 @@
             this.splitContainer1.Panel1.Controls.Add(this.usernameLabel);
             this.splitContainer1.Panel1.Controls.Add(this.password);
             this.splitContainer1.Panel1.Controls.Add(this.username);
-            this.splitContainer1.Panel1.Controls.Add(this.loggingCheckBox);
             this.splitContainer1.Panel1.Controls.Add(this.label10);
             this.splitContainer1.Panel1.Controls.Add(this.label2);
             this.splitContainer1.Panel1.Controls.Add(this.launchGame);
@@ -176,18 +174,6 @@
             this.username.Size = new System.Drawing.Size(123, 20);
             this.username.TabIndex = 0;
             this.username.TextChanged += new System.EventHandler(this.loginFormChanged);
-            // 
-            // loggingCheckBox
-            // 
-            this.loggingCheckBox.AutoSize = true;
-            this.loggingCheckBox.Location = new System.Drawing.Point(205, 36);
-            this.loggingCheckBox.Name = "loggingCheckBox";
-            this.loggingCheckBox.Size = new System.Drawing.Size(64, 17);
-            this.loggingCheckBox.TabIndex = 15;
-            this.loggingCheckBox.Text = "Logging";
-            this.loggingCheckBox.UseVisualStyleBackColor = true;
-            this.loggingCheckBox.Visible = false;
-            this.loggingCheckBox.CheckedChanged += new System.EventHandler(this.loggingCheckBox_CheckedChanged);
             // 
             // label10
             // 
@@ -329,7 +315,8 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(600, 350);
             this.Name = "LauncherForm";
-            this.Text = "Planetside 1 Launcher";
+            this.Text = "PS1 GameLauncher";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LauncherForm_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResizeBegin += new System.EventHandler(this.LauncherForm_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.LauncherForm_ResizeEnd);
@@ -354,7 +341,6 @@
         #endregion
         private System.Windows.Forms.FolderBrowserDialog findPTRDirDialogue;
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.CheckBox loggingCheckBox;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox launchArgs;
         private System.Windows.Forms.Label label2;
