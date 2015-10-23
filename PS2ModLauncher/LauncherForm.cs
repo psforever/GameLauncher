@@ -44,7 +44,7 @@ namespace PSLauncher
 
         Dictionary<LaunchDomain, string> domains = new Dictionary<LaunchDomain, string>()
         {
-            { LaunchDomain.Live, "https://lp.soe.com/ps/live" }
+            { LaunchDomain.Live, "https://lpj.daybreakgames.com/ps/live" }
         };
 
         public LauncherForm()
@@ -276,6 +276,19 @@ namespace PSLauncher
             }
         }
 
+        HttpWebResponse netGetSession(string endpoint, CookieContainer cookies)
+        {
+            string hostname = domains[domain];
+            HttpWebRequest req = WebRequest.Create(hostname + endpoint) as HttpWebRequest;
+            req.CookieContainer = cookies;
+            req.CookieContainer.MaxCookieSize = 4000;
+            req.Method = "GET";
+            req.UserAgent = USER_AGENT;
+            req.Timeout = DEFAULT_WEB_TIMEOUT;
+
+            return req.GetResponse() as HttpWebResponse;
+        }
+
         void doLogin()
         {
             long ts = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -289,23 +302,48 @@ namespace PSLauncher
 
             String endpoint = domains[domain];
             CookieContainer reqCookies = new CookieContainer();
-            HttpWebRequest req = WebRequest.Create(endpoint + "/?t=43323") as HttpWebRequest;
-            req.CookieContainer = reqCookies;
-            req.CookieContainer.MaxCookieSize = 4000;
-            req.Method = "GET";
-            req.UserAgent = USER_AGENT;
-            req.Timeout = DEFAULT_WEB_TIMEOUT;
-
+            HttpWebRequest req;
             HttpWebResponse r;
+
             try
             {
-                r = req.GetResponse() as HttpWebResponse;
+                r = netGetSession("/?t=43323", reqCookies);
             }
             catch (WebException x)
             {
                 addLine("Failed to gather initial session: " + x.Message);
-                stopLaunching();
-                return;
+
+                if (x.Status != WebExceptionStatus.TrustFailure)
+                {
+                    stopLaunching();
+                    return;
+                }
+
+                DialogResult res = MessageBox.Show("DBG's HTTPS certificate has failed to verify. This means that their certificate has expired " +
+                    "or you may be getting Man-in-the-middled (attacked). If you are under attack, your credentials could be lost. Continue regardless?",
+                    "Certificate error", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (res != DialogResult.Yes)
+                {
+                    stopLaunching();
+                    return;
+                }
+
+                // WARNING: once we hit yes, all further SSL errors will be ignored
+                // https://stackoverflow.com/questions/2675133/c-sharp-ignore-certificate-errors
+                ServicePointManager.ServerCertificateValidationCallback +=
+                    (sender, cert, chain, sslPolicyErrors) => true;
+
+                try
+                {
+                    r = netGetSession("/?t=43323", reqCookies);
+                }
+                catch (WebException x2)
+                {
+                    addLine("Failed to gather initial session: " + x2.Message);
+                    stopLaunching();
+                    return;
+                }
             }
 
             // Note: we must manually add secure cookies and CookieContainer is crap
@@ -535,7 +573,8 @@ namespace PSLauncher
             {
                 JObject obj = JObject.Parse(text);
                 result = (string)obj["result"];
-                token = (string)obj["launch_args"];
+                token = (string)obj["launchArgs"];
+                addLine(text);
             }
             catch (Newtonsoft.Json.JsonException x2)
             {
