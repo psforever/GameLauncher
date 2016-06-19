@@ -46,5 +46,41 @@ namespace PSLauncher.Properties {
                 this["ExtraArgs"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OutputShown {
+            get {
+                return ((bool)(this["OutputShown"]));
+            }
+            set {
+                this["OutputShown"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SkipLauncher {
+            get {
+                return ((bool)(this["SkipLauncher"]));
+            }
+            set {
+                this["SkipLauncher"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ClearOutputOnLaunch {
+            get {
+                return ((bool)(this["ClearOutputOnLaunch"]));
+            }
+            set {
+                this["ClearOutputOnLaunch"] = value;
+            }
+        }
     }
 }

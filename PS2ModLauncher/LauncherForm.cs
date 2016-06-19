@@ -19,54 +19,53 @@ namespace PSLauncher
 
     public enum LaunchDomain
     {
-        Live
+        Live,
+        PSForever
     }
 
     public enum GameState
     {
         Stopped,
         Launching,
-        Running
+        Running,
+        Stopping
     }
 
     public partial class LauncherForm : Form
     {
         Process psProcess;
         string USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; rv:31.0) Gecko/20100101 Firefox/31.0";
-        static string PS_EXE_NAME = "planetside.exe";
+
         int DEFAULT_WEB_TIMEOUT = 5000;
-        string planetsidePath = "";
-        bool planetsidePathValid = false;
         bool bGameRunning = false;
         GameState gameState = GameState.Stopped;
+        System.Drawing.Size oldSize = new System.Drawing.Size(0, 0);
 
         LaunchDomain domain = LaunchDomain.Live;
 
         Dictionary<LaunchDomain, string> domains = new Dictionary<LaunchDomain, string>()
         {
-            { LaunchDomain.Live, "https://lpj.daybreakgames.com/ps/live" }
+            { LaunchDomain.Live, "https://lpj.daybreakgames.com/ps/live" },
+            { LaunchDomain.PSForever, "https://login.psforever.net/" }
         };
 
         public LauncherForm()
         {
             InitializeComponent();
-            
+
+            if (Debugger.IsAttached)
+                Settings.Default.Reset();
+
             string psDefault = getDefaultDirectory();
             
             // first run with no settings or invalid starting path
             if (Settings.Default.PSPath == "" || !checkDirForPlanetSide(Settings.Default.PSPath))
             {
-                // try setting the path. It may not be right, but this initializes state
-                setPlanetSidePath(Path.Combine(psDefault, PS_EXE_NAME), false);
                 Settings.Default.PSPath = psDefault;
             }
-            else
-            {
-                setPlanetSidePath(Path.Combine(Settings.Default.PSPath, PS_EXE_NAME), false);
-            }
 
-            planetside2PathTextField.Text = Settings.Default.PSPath;
-            launchArgs.Text = Settings.Default.ExtraArgs;
+            setConsoleWindowState(Settings.Default.OutputShown);
+            skipLauncher.Checked = Settings.Default.SkipLauncher;
         }
 
         private void LauncherForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -81,143 +80,53 @@ namespace PSLauncher
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            // set the starting path for the dialog
-            if (planetside2PathTextField.Text != "")
-                findPTRDirDialogue.SelectedPath = planetside2PathTextField.Text;
-
-            DialogResult r = findPTRDirDialogue.ShowDialog();
-
-            if (r == DialogResult.OK)
-            {
-                // combine the folder name with the standard PS.exe name
-                string psPath = Path.Combine(findPTRDirDialogue.SelectedPath, PS_EXE_NAME);
-
-                planetside2PathTextField.Text = findPTRDirDialogue.SelectedPath;
-                setPlanetSidePath(psPath);
-                
-                Settings.Default.PSPath = findPTRDirDialogue.SelectedPath;
-            }
-        }
-
-        private bool setPlanetSidePath(string path, bool alert = true)
-        {
-            planetsidePath = path;
-            planetsidePathValid = false;
-
-            if(!File.Exists(path))
-            {
-                planetsideVersion.Text = "Not found";
-                planetsideVersion.ForeColor = System.Drawing.Color.Red;
-
-                if(alert)
-                MessageBox.Show("Cannot open " + PS_EXE_NAME + " (check the selected directory)",
-                       "Cannot Find Executable", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return planetsidePathValid;
-            }
-
-            var versionInfo = FileVersionInfo.GetVersionInfo(path);
-
-            planetsidePathValid = true;
-
-            if (versionInfo.FileVersion != "")
-            {
-                planetsideVersion.Text = "Version " + versionInfo.FileVersion;
-                planetsideVersion.ForeColor = System.Drawing.Color.Green;
-            }
-            else
-            {
-                planetsideVersion.Text = "Unknown version";
-                planetsideVersion.ForeColor = System.Drawing.Color.Yellow;
-            }
-
-            return planetsidePathValid;
-        }
-
-        private void folderBrowserDialog1_HelpRequest(object sender, EventArgs e)
-        {
-
-        }
-
         private void stopLaunching()
         {
-            if (this.InvokeRequired)
-            {
-                this.Invoke((MethodInvoker)delegate
-                {
-                    this.launchGame.Enabled = true;
-                    this.launchGame.Text = "Launch";
-                    this.launchProgress.Visible = false;
-                });
-            }
-            else
-            {
-                this.launchGame.Enabled = true;
-                this.launchGame.Text = "Launch";
-                this.launchProgress.Visible = false;
-            }
-
-            setProgress(0);
+            setButtonState(GameState.Stopped);
+            progressShown(false);
 
             gameState = GameState.Stopped;
         }
 
         private void startLaunching()
         {
-            if (this.InvokeRequired)
-            {
-                this.Invoke((MethodInvoker)delegate
-                {
-                    this.launchGame.Enabled = false;
-                    this.launchGame.Text = "Launching...";
-                    this.launchProgress.Visible = true;
-                    setProgress(0);
-                });
-            }
-            else
-            {
-                this.launchGame.Enabled = false;
-                this.launchGame.Text = "Launching...";
-                this.launchProgress.Visible = true;
-                setProgress(0);
-            }
+            setButtonState(GameState.Launching);
+            progressShown(true);
 
             gameState = GameState.Launching;
         }
 
-        private void setProgress(int prog)
+        private void setButtonState(GameState state)
         {
-            if (this.InvokeRequired)
+            this.SafeInvoke(a =>
             {
-                this.Invoke((MethodInvoker)delegate
+                switch (state)
                 {
-                    this.launchProgress.Value = prog;
-                });
-            }
-            else
-            {
-                this.launchProgress.Value = prog;
-            }
+                    case GameState.Launching:
+                        this.launchGame.Enabled = false;
+                        this.launchGame.Text = "Launching...";
+                        break;
+                    case GameState.Running:
+                        this.launchGame.BackColor = System.Drawing.Color.FromArgb(255, 128, 128);
+                        this.launchGame.Enabled = true;
+                        this.launchGame.Text = "Kill";
+                        break;
+                    case GameState.Stopped:
+                        this.launchGame.BackColor = System.Drawing.Color.FromArgb(128, 255, 128);
+                        this.launchGame.Enabled = true;
+                        this.launchGame.Text = "Launch";
+                        break;
+                    case GameState.Stopping:
+                        this.launchGame.Enabled = false;
+                        this.launchGame.Text = "Killing...";
+                        break;
+                }
+            });
         }
 
         private void setErrorMessage(string error)
         {
-            if (this.InvokeRequired)
-            {
-                this.Invoke((MethodInvoker)delegate
-                {
-                    if (error == "")
-                    {
-                        this.launchMessage.Visible = false;
-                        return;
-                    }
-
-                    this.launchMessage.Visible = true;
-                    this.launchMessage.Text = error;
-                });
-            }
-            else
+            this.SafeInvoke(a =>
             {
                 if (error == "")
                 {
@@ -227,48 +136,46 @@ namespace PSLauncher
 
                 this.launchMessage.Visible = true;
                 this.launchMessage.Text = error;
-            }
+            });
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            startLaunching();
-            setErrorMessage("");
+            if(gameState == GameState.Running) // kill command
+            {
+                psProcess.Kill();
+                return;
+            }
 
-            string path = planetside2PathTextField.Text;
-            string psExe = Path.Combine(path, PS_EXE_NAME);
+            if(Settings.Default.ClearOutputOnLaunch)
+            {
+                this.ps_consoleOutput.Clear();
+            }
+
+            string path = Settings.Default.PSPath;
+            string psExe = Path.Combine(path, SettingsForm.PS_EXE_NAME);
 
             if (!skipLauncher.Checked && (username.Text == String.Empty || password.Text == String.Empty))
             {
                 setErrorMessage("Username or password blank");
-                stopLaunching();
                 return;
             }
 
-            if (!planetsidePathValid)
+            if (!checkDirForPlanetSide(path))
             {
                 setErrorMessage("Invalid planetside exe");
-                stopLaunching();
                 return;
-            }
-
-            if (String.IsNullOrWhiteSpace(launchArgs.Text))
-                launchArgs.Text = "";
-
-            //And the extra launch args
-            if (Settings.Default.ExtraArgs != launchArgs.Text)
-            {
-                Settings.Default.ExtraArgs = this.launchArgs.Text;
             }
 
             if (skipLauncher.Checked)
             {
                 // magic string to login to planetside from the actual game
-                startPlanetSide(planetsidePath, Path.GetDirectoryName(planetsidePath), "/K:StagingTest " + launchArgs.Text);
-                setProgress(100);
+                startPlanetSide(psExe, Path.GetDirectoryName(psExe), "/K:StagingTest " + Settings.Default.ExtraArgs);
             }
             else
             {
+                startLaunching();
+
                 Task.Factory.StartNew(() =>
                 {
                     this.doLogin();
@@ -293,8 +200,8 @@ namespace PSLauncher
         {
             long ts = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
-            string path = planetside2PathTextField.Text;
-            string psExe = Path.Combine(path, PS_EXE_NAME);
+            string path = Settings.Default.PSPath;
+            string psExe = Path.Combine(path, SettingsForm.PS_EXE_NAME);
 
             /////////////////////////////////////////////////////////////////
             // Step 1: Establish Session ID
@@ -353,7 +260,6 @@ namespace PSLauncher
 
             addLine("PSWeb: session started");
             r.Close();
-            setProgress(25);
 
             /////////////////////////////////////////////////////////////////
             // Step 2: Try logging in
@@ -464,7 +370,6 @@ namespace PSLauncher
             string result = "";
             r.Close();
             addLine("PSWeb: logged in");
-            setProgress(50);
 
             try
             {
@@ -565,7 +470,6 @@ namespace PSLauncher
 
             result = "";
             r.Close();
-            setProgress(75);
 
             string token = "";
 
@@ -595,14 +499,13 @@ namespace PSLauncher
             addLine("PSWeb: got launch args " + token);
 
             string launch_args = token;
-            string ExtraLaunchArgs = launchArgs.Text;
+            string ExtraLaunchArgs = Settings.Default.ExtraArgs;
 
             if (ExtraLaunchArgs != String.Empty)
                 launch_args += " " + ExtraLaunchArgs;
 
             startPlanetSide(psExe, path, launch_args);
-
-            setProgress(100);
+            
             return;
         }
 
@@ -625,7 +528,6 @@ namespace PSLauncher
 
             psProcess.BeginErrorReadLine();
             psProcess.BeginOutputReadLine();
-            
 
             gameRunning();
         }
@@ -640,34 +542,16 @@ namespace PSLauncher
 
         void addLine(String line)
         {
-            if(this.InvokeRequired)
-            {
-                this.Invoke((MethodInvoker)delegate
-                {
-                    ps_consoleOutput.AppendText(line + Environment.NewLine);
-                });
-            }
-            else
+            this.SafeInvoke(a =>
             {
                 ps_consoleOutput.AppendText(line + Environment.NewLine);
-            }
+            });
         }
 
         void gameRunning()
         {
-            if (this.InvokeRequired)
-            {
-                this.Invoke((MethodInvoker)delegate
-                {
-                    this.launchGame.Enabled = false;
-                    this.launchGame.Text = "Running";
-                });
-            }
-            else
-            {
-                this.launchGame.Enabled = false;
-                this.launchGame.Text = "Running";
-            }
+            setButtonState(GameState.Running);
+            progressShown(false);
 
             bGameRunning = true;
             gameState = GameState.Running;
@@ -687,6 +571,121 @@ namespace PSLauncher
         private void Form1_Load(object sender, EventArgs e)
         {
             
+        }
+
+        private void progressShown(bool shown)
+        {
+            this.SafeInvoke(a =>
+            {
+                if (shown)
+                {
+                    this.spinner.Visible = true;
+                    this.spinner.Enabled = true;
+                    this.launchGame.Visible = false;
+                }
+                else
+                {
+                    this.spinner.Visible = false;
+                    this.spinner.Enabled = false;
+                    this.launchGame.Visible = true;
+                }
+            });
+        }
+
+        private void aboutToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            About a = new About();
+            a.StartPosition = FormStartPosition.CenterParent;
+            a.ShowDialog(this);
+        }
+
+        private void loginFormChanged(object sender, EventArgs e)
+        {
+            if (gameState == GameState.Stopped)
+            {
+                if (username.Text.Length > 0 && password.Text.Length > 0 || skipLauncher.Checked)
+                    launchGame.Enabled = true;
+                else
+                    launchGame.Enabled = false;
+            }
+
+            if (skipLauncher.Checked)
+            {
+                Settings.Default.SkipLauncher = true;
+                username.Enabled = false;
+                password.Enabled = false;
+            }
+            else
+            {
+                Settings.Default.SkipLauncher = false;
+                username.Enabled = true;
+                password.Enabled = true;
+            }
+        }
+
+        private void setConsoleWindowState(bool open)
+        {
+            if (!open)
+            {
+                oldSize = this.Size;
+
+                this.hideShowOutput.Text = "vv Show vv";
+                this.MinimumSize = this.MaximumSize = new System.Drawing.Size(400, 160);
+                
+                this.Size = new System.Drawing.Size(400, 190);
+
+                this.WindowState = FormWindowState.Normal;
+                this.MaximizeBox = false;
+            }
+            else
+            {
+                this.hideShowOutput.Text = "^^ Hide ^^";
+                this.MinimumSize = new System.Drawing.Size(400, 350);
+                this.MaximumSize = new System.Drawing.Size(0, 0);
+
+                if (oldSize.IsEmpty)
+                    this.Size = new System.Drawing.Size(400, 500); // default size to expand to
+                else
+                    this.Size = oldSize;
+
+                this.MaximizeBox = true;
+            }
+
+            splitContainer1.Panel2Collapsed = !open;
+        }
+
+        private void LauncherForm_ResizeBegin(object sender, EventArgs e)
+        {
+            splitContainer1.Panel2.SuspendLayout();
+        }
+
+        private void LauncherForm_ResizeEnd(object sender, EventArgs e)
+        {
+            Win32.SuspendPainting(splitContainer1.Panel2.Handle);
+            splitContainer1.Panel2.ResumeLayout();
+            Win32.ResumePainting(splitContainer1.Panel2.Handle);
+            this.Refresh();
+        }
+
+        private void hideShowOutput_Click_1(object sender, EventArgs e)
+        {
+            if (splitContainer1.Panel2Collapsed)
+            {
+                Settings.Default.OutputShown = true;
+                setConsoleWindowState(true);
+            }
+            else
+            {
+                Settings.Default.OutputShown = false;
+                setConsoleWindowState(false);
+            }
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SettingsForm a = new SettingsForm();
+            a.StartPosition = FormStartPosition.CenterParent;
+            a.ShowDialog(this);
         }
 
         private static string getDefaultDirectory()
@@ -733,7 +732,7 @@ namespace PSLauncher
         
         private static bool checkDirForPlanetSide(string dir)
         {
-            return File.Exists(Path.Combine(dir, PS_EXE_NAME));
+            return File.Exists(Path.Combine(dir, SettingsForm.PS_EXE_NAME));
         }
 
         private static string ProgramFilesx86()
@@ -745,52 +744,6 @@ namespace PSLauncher
             }
 
             return Environment.GetEnvironmentVariable("ProgramFiles");
-        }
-
-        private void loginWebBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
-        {
-
-        }
-
-        private void aboutToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            About a = new About();
-            a.ShowDialog(this);
-        }
-
-        private void loginFormChanged(object sender, EventArgs e)
-        {
-            if(gameState == GameState.Stopped)
-            {
-                if (username.Text.Length > 0 && password.Text.Length > 0 || skipLauncher.Checked)
-                    launchGame.Enabled = true;
-                else
-                    launchGame.Enabled = false;
-            }
-
-            if (skipLauncher.Checked)
-            {
-                username.Enabled = false;
-                password.Enabled = false;
-            }
-            else
-            {
-                username.Enabled = true;
-                password.Enabled = true;
-            }
-        }
-
-        private void LauncherForm_ResizeBegin(object sender, EventArgs e)
-        {
-            splitContainer1.Panel2.SuspendLayout();
-        }
-
-        private void LauncherForm_ResizeEnd(object sender, EventArgs e)
-        {
-            Win32.SuspendPainting(splitContainer1.Panel2.Handle);
-            splitContainer1.Panel2.ResumeLayout();
-            Win32.ResumePainting(splitContainer1.Panel2.Handle);
-            this.Refresh();
         }
     }
 
