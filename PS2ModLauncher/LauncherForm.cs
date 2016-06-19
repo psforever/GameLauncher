@@ -53,13 +53,13 @@ namespace PSLauncher
         {
             InitializeComponent();
 
-            if (Debugger.IsAttached)
-                Settings.Default.Reset();
+            //if (Debugger.IsAttached)
+            //    Settings.Default.Reset();
 
-            string psDefault = getDefaultDirectory();
+            string psDefault = Util.getDefaultPlanetSideDirectory();
             
             // first run with no settings or invalid starting path
-            if (Settings.Default.PSPath == "" || !checkDirForPlanetSide(Settings.Default.PSPath))
+            if (Settings.Default.PSPath == "" || !Util.checkDirForPlanetSide(Settings.Default.PSPath))
             {
                 Settings.Default.PSPath = psDefault;
             }
@@ -161,7 +161,7 @@ namespace PSLauncher
                 return;
             }
 
-            if (!checkDirForPlanetSide(path))
+            if (!Util.checkDirForPlanetSide(path))
             {
                 setErrorMessage("Invalid planetside exe");
                 return;
@@ -565,12 +565,9 @@ namespace PSLauncher
 
         void ps_Exited(object sender, EventArgs e)
         {
-            gameStopped();
-        }
+            addLine(String.Format("ProcessEnd: exit code 0x{0}", psProcess.ExitCode.ToString("X8")));
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            
+            gameStopped();
         }
 
         private void progressShown(bool shown)
@@ -636,6 +633,7 @@ namespace PSLauncher
 
                 this.WindowState = FormWindowState.Normal;
                 this.MaximizeBox = false;
+                this.FormBorderStyle = FormBorderStyle.FixedSingle;
             }
             else
             {
@@ -644,11 +642,12 @@ namespace PSLauncher
                 this.MaximumSize = new System.Drawing.Size(0, 0);
 
                 if (oldSize.IsEmpty)
-                    this.Size = new System.Drawing.Size(400, 500); // default size to expand to
+                    this.Size = new System.Drawing.Size(600, 500); // default size to expand to
                 else
                     this.Size = oldSize;
 
                 this.MaximizeBox = true;
+                this.FormBorderStyle = FormBorderStyle.Sizable;
             }
 
             splitContainer1.Panel2Collapsed = !open;
@@ -688,91 +687,40 @@ namespace PSLauncher
             a.ShowDialog(this);
         }
 
-        private static string getDefaultDirectory()
+        private void selectAll_Click(object sender, EventArgs e)
         {
-            RegistryKey key = null;
-            string psFolder = "";
+            this.ps_consoleOutput.Focus();
+            this.ps_consoleOutput.SelectAll();
+        }
 
-            // non-steam install
-            key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\App Paths\LaunchPad.exe");
+        private void copy_Click(object sender, EventArgs e)
+        {
+            this.ps_consoleOutput.Copy();
+        }
 
-            if (key != null && key.GetValue("") != null)
+        private void saveToFile_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFile = new SaveFileDialog();
+
+            saveFile.FileName = "";
+            saveFile.Filter = "Output file (*.txt) | *.txt";
+            saveFile.AddExtension = true;
+            saveFile.DefaultExt = ".txt";
+
+            DialogResult result = saveFile.ShowDialog();
+
+            if (result == DialogResult.OK)
             {
-                String defaultDirectory;
-                defaultDirectory = key.GetValue("").ToString();
-                defaultDirectory = Path.GetDirectoryName(defaultDirectory);
+                FileStream f = File.OpenWrite(saveFile.FileName);
 
-                // verify that we aren't mistakingly returning a PlanetSide 2 directory...
-                if (Directory.Exists(defaultDirectory) && checkDirForPlanetSide(defaultDirectory))
-                    return defaultDirectory;
+                var encoder = new ASCIIEncoding();
+                var header = encoder.GetBytes(String.Format("{0} log output {1}" + Environment.NewLine, this.Text, DateTime.Now.ToString()));
+                var data = new ASCIIEncoding().GetBytes(this.ps_consoleOutput.Text);
 
-                // try to go up a directory and find the PlanetSide folder
-                string upOne = Directory.GetParent(defaultDirectory).FullName;
-                psFolder = Path.Combine(upOne, "Planetside");
-
-                if (Directory.Exists(psFolder) && checkDirForPlanetSide(psFolder))
-                    return psFolder;
+                f.Write(header, 0, header.Length);
+                f.Write(data, 0, data.Length);
+                f.Close();
             }
-            
-            // worth a shot!
-            psFolder = Path.Combine(ProgramFilesx86(), "Sony\\PlanetSide");
-
-            if (Directory.Exists(psFolder) && checkDirForPlanetSide(psFolder))
-                return psFolder;
-
-            // HACK: our last attempt. Should work on Win7 and above with and updated launcher
-            psFolder = "C:\\Users\\Public\\Sony Online Entertainment\\Installed Games\\Planetside";
-
-            if (Directory.Exists(psFolder) && checkDirForPlanetSide(psFolder))
-                return psFolder;
-
-            // give up
-            return "";
-        }
-        
-        private static bool checkDirForPlanetSide(string dir)
-        {
-            return File.Exists(Path.Combine(dir, SettingsForm.PS_EXE_NAME));
-        }
-
-        private static string ProgramFilesx86()
-        {
-            if (8 == IntPtr.Size
-                || (!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"))))
-            {
-                return Environment.GetEnvironmentVariable("ProgramFiles(x86)");
-            }
-
-            return Environment.GetEnvironmentVariable("ProgramFiles");
-        }
-    }
-
-    public static class QueryExtensions
-    {
-        public static string ToQueryString(this NameValueCollection nvc)
-        {
-            IEnumerable<string> segments = from key in nvc.AllKeys
-                                           from value in nvc.GetValues(key)
-                                           select string.Format("{0}={1}", key, value);
-            return string.Join("&", segments);
-        }
-    }
-    public static class Win32
-    {
-
-        public const int WM_SETREDRAW = 0x0b;
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
-
-        public static void SuspendPainting(IntPtr hWnd)
-        {
-            SendMessage(hWnd, WM_SETREDRAW, (IntPtr)0, IntPtr.Zero);
-        }
-
-        public static void ResumePainting(IntPtr hWnd)
-        {
-            SendMessage(hWnd, WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
         }
     }
 }

@@ -20,25 +20,27 @@ namespace PSLauncher
         {
             InitializeComponent();
 
-            planetside2PathTextField.Text = Settings.Default.PSPath;
+            planetsidePathTextField.Text = Settings.Default.PSPath;
             launchArgs.Text = Settings.Default.ExtraArgs;
             clearOnLaunch.Checked = Settings.Default.ClearOutputOnLaunch;
+
+            checkPath(Path.Combine(planetsidePathTextField.Text, PS_EXE_NAME), false);
         }
         
         private void button1_Click(object sender, EventArgs e)
         {
             // set the starting path for the dialog
-            if (planetside2PathTextField.Text != "")
-                findPTRDirDialogue.SelectedPath = planetside2PathTextField.Text;
-
-            DialogResult r = findPTRDirDialogue.ShowDialog();
+            if (planetsidePathTextField.Text != "")
+                findPTRDirDialogue.SelectedPath = planetsidePathTextField.Text;
+            
+            DialogResult r = findPTRDirDialogue.ShowDialog(this);
 
             if (r == DialogResult.OK)
             {
                 // combine the folder name with the standard PS.exe name
                 string psPath = Path.Combine(findPTRDirDialogue.SelectedPath, PS_EXE_NAME);
 
-                planetside2PathTextField.Text = findPTRDirDialogue.SelectedPath;
+                planetsidePathTextField.Text = findPTRDirDialogue.SelectedPath;
 
                 if (checkPath(psPath))
                     Settings.Default.PSPath = findPTRDirDialogue.SelectedPath;

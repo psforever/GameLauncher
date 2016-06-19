@@ -30,7 +30,7 @@
         {
             this.label2 = new System.Windows.Forms.Label();
             this.selectDirectory = new System.Windows.Forms.Button();
-            this.planetside2PathTextField = new System.Windows.Forms.TextBox();
+            this.planetsidePathTextField = new System.Windows.Forms.TextBox();
             this.launchArgs = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.planetsideVersion = new System.Windows.Forms.Label();
@@ -60,12 +60,12 @@
             // 
             // planetside2PathTextField
             // 
-            this.planetside2PathTextField.Location = new System.Drawing.Point(12, 33);
-            this.planetside2PathTextField.Name = "planetside2PathTextField";
-            this.planetside2PathTextField.ReadOnly = true;
-            this.planetside2PathTextField.Size = new System.Drawing.Size(222, 20);
-            this.planetside2PathTextField.TabIndex = 8;
-            this.planetside2PathTextField.Text = "Path to PlanetSide folder";
+            this.planetsidePathTextField.Location = new System.Drawing.Point(12, 33);
+            this.planetsidePathTextField.Name = "planetside2PathTextField";
+            this.planetsidePathTextField.ReadOnly = true;
+            this.planetsidePathTextField.Size = new System.Drawing.Size(222, 20);
+            this.planetsidePathTextField.TabIndex = 8;
+            this.planetsidePathTextField.Text = "Path to PlanetSide folder";
             // 
             // launchArgs
             // 
@@ -90,6 +90,8 @@
             this.planetsideVersion.Name = "planetsideVersion";
             this.planetsideVersion.Size = new System.Drawing.Size(132, 21);
             this.planetsideVersion.TabIndex = 25;
+            this.planetsideVersion.Text = "Version";
+            this.planetsideVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // clearOnLaunch
             // 
@@ -118,14 +120,14 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(244, 211);
+            this.Controls.Add(this.planetsideVersion);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.clearOnLaunch);
-            this.Controls.Add(this.planetsideVersion);
             this.Controls.Add(this.launchArgs);
             this.Controls.Add(this.label10);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.selectDirectory);
-            this.Controls.Add(this.planetside2PathTextField);
+            this.Controls.Add(this.planetsidePathTextField);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(260, 250);
@@ -142,7 +144,7 @@
 
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button selectDirectory;
-        private System.Windows.Forms.TextBox planetside2PathTextField;
+        private System.Windows.Forms.TextBox planetsidePathTextField;
         private System.Windows.Forms.TextBox launchArgs;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label planetsideVersion;

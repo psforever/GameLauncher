@@ -41,6 +41,10 @@
             this.launchMessage = new System.Windows.Forms.Label();
             this.spinner = new System.Windows.Forms.PictureBox();
             this.ps_consoleOutput = new System.Windows.Forms.TextBox();
+            this.outputRightClick = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.selectAll = new System.Windows.Forms.ToolStripMenuItem();
+            this.copy = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveToFile = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
@@ -52,6 +56,7 @@
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spinner)).BeginInit();
+            this.outputRightClick.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
@@ -186,6 +191,7 @@
             // ps_consoleOutput
             // 
             this.ps_consoleOutput.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.ps_consoleOutput.ContextMenuStrip = this.outputRightClick;
             this.ps_consoleOutput.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ps_consoleOutput.Location = new System.Drawing.Point(0, 0);
             this.ps_consoleOutput.Multiline = true;
@@ -195,6 +201,39 @@
             this.ps_consoleOutput.Size = new System.Drawing.Size(384, 188);
             this.ps_consoleOutput.TabIndex = 1;
             this.ps_consoleOutput.WordWrap = false;
+            // 
+            // outputRightClick
+            // 
+            this.outputRightClick.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.selectAll,
+            this.copy,
+            this.saveToFile});
+            this.outputRightClick.Name = "outputRightClick";
+            this.outputRightClick.Size = new System.Drawing.Size(165, 70);
+            // 
+            // selectAll
+            // 
+            this.selectAll.Name = "selectAll";
+            this.selectAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
+            this.selectAll.Size = new System.Drawing.Size(164, 22);
+            this.selectAll.Text = "Select All";
+            this.selectAll.Click += new System.EventHandler(this.selectAll_Click);
+            // 
+            // copy
+            // 
+            this.copy.Name = "copy";
+            this.copy.ShortcutKeyDisplayString = "";
+            this.copy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
+            this.copy.Size = new System.Drawing.Size(164, 22);
+            this.copy.Text = "Copy";
+            this.copy.Click += new System.EventHandler(this.copy_Click);
+            // 
+            // saveToFile
+            // 
+            this.saveToFile.Name = "saveToFile";
+            this.saveToFile.Size = new System.Drawing.Size(164, 22);
+            this.saveToFile.Text = "Save to file ...";
+            this.saveToFile.Click += new System.EventHandler(this.saveToFile_Click);
             // 
             // contextMenuStrip1
             // 
@@ -267,7 +306,6 @@
             this.Name = "LauncherForm";
             this.Text = "PS1 GameLauncher";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LauncherForm_FormClosing);
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResizeBegin += new System.EventHandler(this.LauncherForm_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.LauncherForm_ResizeEnd);
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -277,6 +315,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.spinner)).EndInit();
+            this.outputRightClick.ResumeLayout(false);
             this.contextMenuStrip1.ResumeLayout(false);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
@@ -307,6 +346,10 @@
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.Button hideShowOutput;
         private System.Windows.Forms.PictureBox spinner;
+        private System.Windows.Forms.ContextMenuStrip outputRightClick;
+        private System.Windows.Forms.ToolStripMenuItem selectAll;
+        private System.Windows.Forms.ToolStripMenuItem copy;
+        private System.Windows.Forms.ToolStripMenuItem saveToFile;
     }
 }
 
