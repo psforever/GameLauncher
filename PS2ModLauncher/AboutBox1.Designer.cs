@@ -31,7 +31,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
-            this.appVersion = new System.Windows.Forms.Label();
+            this.versionInfo = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // okButton
@@ -71,7 +71,9 @@
             // 
             this.linkLabel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.linkLabel1.Location = new System.Drawing.Point(9, 55);
+            this.linkLabel1.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Padding = new System.Windows.Forms.Padding(0, 0, 0, 5);
             this.linkLabel1.Size = new System.Drawing.Size(328, 22);
             this.linkLabel1.TabIndex = 28;
             this.linkLabel1.TabStop = true;
@@ -79,22 +81,26 @@
             this.linkLabel1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
-            // appVersion
+            // versionInfo
             // 
-            this.appVersion.Dock = System.Windows.Forms.DockStyle.Top;
-            this.appVersion.Location = new System.Drawing.Point(9, 77);
-            this.appVersion.Name = "appVersion";
-            this.appVersion.Size = new System.Drawing.Size(328, 27);
-            this.appVersion.TabIndex = 29;
-            this.appVersion.Text = "label3";
-            this.appVersion.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.versionInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.versionInfo.Dock = System.Windows.Forms.DockStyle.Top;
+            this.versionInfo.Location = new System.Drawing.Point(9, 77);
+            this.versionInfo.Margin = new System.Windows.Forms.Padding(3, 10, 3, 10);
+            this.versionInfo.Name = "versionInfo";
+            this.versionInfo.ReadOnly = true;
+            this.versionInfo.Size = new System.Drawing.Size(328, 13);
+            this.versionInfo.TabIndex = 29;
+            this.versionInfo.TabStop = false;
+            this.versionInfo.Text = "Version 1.x.x.x";
+            this.versionInfo.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // About
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(346, 142);
-            this.Controls.Add(this.appVersion);
+            this.Controls.Add(this.versionInfo);
             this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -109,6 +115,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "About PS1 GameLauncher";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -118,6 +125,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.LinkLabel linkLabel1;
-        private System.Windows.Forms.Label appVersion;
+        private System.Windows.Forms.TextBox versionInfo;
     }
 }

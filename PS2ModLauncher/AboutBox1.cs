@@ -19,7 +19,7 @@ namespace PSLauncher
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             string version = fvi.FileVersion;
 
-            appVersion.Text = "Version " + version;
+            versionInfo.Text = "Version " + version;
         }
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

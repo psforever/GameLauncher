@@ -90,7 +90,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.ps_consoleOutput);
-            this.splitContainer1.Size = new System.Drawing.Size(384, 287);
+            this.splitContainer1.Size = new System.Drawing.Size(404, 287);
             this.splitContainer1.SplitterDistance = this.splitContainer1.Panel1MinSize;
             this.splitContainer1.TabIndex = 0;
             // 
@@ -98,7 +98,7 @@
             // 
             this.hideShowOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.hideShowOutput.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.hideShowOutput.Location = new System.Drawing.Point(297, 69);
+            this.hideShowOutput.Location = new System.Drawing.Point(317, 69);
             this.hideShowOutput.Name = "hideShowOutput";
             this.hideShowOutput.Size = new System.Drawing.Size(84, 21);
             this.hideShowOutput.TabIndex = 23;
@@ -171,10 +171,10 @@
             this.launchMessage.ForeColor = System.Drawing.Color.Red;
             this.launchMessage.Location = new System.Drawing.Point(202, 37);
             this.launchMessage.Name = "launchMessage";
-            this.launchMessage.Size = new System.Drawing.Size(172, 27);
+            this.launchMessage.Size = new System.Drawing.Size(197, 27);
             this.launchMessage.TabIndex = 22;
             this.launchMessage.Text = "Error message";
-            this.launchMessage.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.launchMessage.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.launchMessage.Visible = false;
             // 
             // spinner
@@ -198,7 +198,7 @@
             this.ps_consoleOutput.Name = "ps_consoleOutput";
             this.ps_consoleOutput.ReadOnly = true;
             this.ps_consoleOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.ps_consoleOutput.Size = new System.Drawing.Size(384, 188);
+            this.ps_consoleOutput.Size = new System.Drawing.Size(404, 188);
             this.ps_consoleOutput.TabIndex = 1;
             this.ps_consoleOutput.WordWrap = false;
             // 
@@ -256,7 +256,7 @@
             this.aboutToolStripMenuItem1});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(384, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(404, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -280,13 +280,13 @@
             // toolStripContainer1.ContentPanel
             // 
             this.toolStripContainer1.ContentPanel.Controls.Add(this.splitContainer1);
-            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(384, 287);
+            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(404, 287);
             this.toolStripContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.toolStripContainer1.LeftToolStripPanelVisible = false;
             this.toolStripContainer1.Location = new System.Drawing.Point(0, 0);
             this.toolStripContainer1.Name = "toolStripContainer1";
             this.toolStripContainer1.RightToolStripPanelVisible = false;
-            this.toolStripContainer1.Size = new System.Drawing.Size(384, 311);
+            this.toolStripContainer1.Size = new System.Drawing.Size(404, 311);
             this.toolStripContainer1.TabIndex = 3;
             this.toolStripContainer1.Text = "toolStripContainer1";
             // 
@@ -299,10 +299,10 @@
             this.AcceptButton = this.launchGame;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(384, 311);
+            this.ClientSize = new System.Drawing.Size(404, 311);
             this.Controls.Add(this.toolStripContainer1);
             this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = new System.Drawing.Size(400, 350);
+            this.MinimumSize = new System.Drawing.Size(420, 350);
             this.Name = "LauncherForm";
             this.Text = "PS1 GameLauncher";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LauncherForm_FormClosing);

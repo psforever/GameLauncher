@@ -321,24 +321,24 @@ namespace PSLauncher
                 try
                 {
                     JObject obj2 = JObject.Parse(txt);
-                    errorDetail = (string)obj2["errorDetail"];
+                    errorDetail = (string)obj2["error"];
                 }
                 catch (Newtonsoft.Json.JsonException x2)
                 {
                     errorDetail = "Json parse error: " + x2.Message;
                 }
 
-                if (errorDetail == "INVALID_ACCOUNT_ID")
+                if (errorDetail == "INVALID_ACCOUNT_ID") // not sure if we still get this...
                 {
                     setErrorMessage("Unknown username");
                 }
-                else if (errorDetail == "RESET_ACCOUNT_PASSWORD")
+                else if (errorDetail == "NEED_PASSWORD_RESET")
                 {
                     setErrorMessage("Your account needs a password reset");
                 }
-                else if (errorDetail == "PASSWORD_MISMATCH")
+                else if (errorDetail == "BAD_LOGIN")
                 {
-                    setErrorMessage("Bad password");
+                    setErrorMessage("Bad password or username");
                 }
                 else // unrecognized!
                 {
@@ -446,7 +446,6 @@ namespace PSLauncher
                 else // unrecognized!
                 {
                     setErrorMessage("Unknown error - see output window");
-
                 }
 
                 addLine("Get token failure: " + x.Status);
@@ -627,9 +626,9 @@ namespace PSLauncher
                 oldSize = this.Size;
 
                 this.hideShowOutput.Text = "vv Show vv";
-                this.MinimumSize = this.MaximumSize = new System.Drawing.Size(400, 160);
+                this.MinimumSize = this.MaximumSize = new System.Drawing.Size(420, 160);
                 
-                this.Size = new System.Drawing.Size(400, 190);
+                this.Size = new System.Drawing.Size(420, 160);
 
                 this.WindowState = FormWindowState.Normal;
                 this.MaximizeBox = false;
@@ -638,7 +637,7 @@ namespace PSLauncher
             else
             {
                 this.hideShowOutput.Text = "^^ Hide ^^";
-                this.MinimumSize = new System.Drawing.Size(400, 350);
+                this.MinimumSize = new System.Drawing.Size(420, 350);
                 this.MaximumSize = new System.Drawing.Size(0, 0);
 
                 if (oldSize.IsEmpty)
