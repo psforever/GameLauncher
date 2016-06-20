@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PS1 GameLauncher")]
+[assembly: AssemblyTitle("PSForever Launcher")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("PSForever")]
-[assembly: AssemblyProduct("PS1 GameLauncher")]
+[assembly: AssemblyCompany("PSForever.net")]
+[assembly: AssemblyProduct("PSForever Launcher")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

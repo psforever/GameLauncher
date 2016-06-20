@@ -20,6 +20,8 @@ namespace PSLauncher
         {
             InitializeComponent();
 
+            this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+
             planetsidePathTextField.Text = Settings.Default.PSPath;
             launchArgs.Text = Settings.Default.ExtraArgs;
             clearOnLaunch.Checked = Settings.Default.ClearOutputOnLaunch;
@@ -61,17 +63,26 @@ namespace PSLauncher
                 return false;
             }
 
-            var versionInfo = FileVersionInfo.GetVersionInfo(path);
+            var vi = FileVersionInfo.GetVersionInfo(path);
 
-            if (versionInfo.FileVersion != "")
+            if (vi.FileVersion != "")
             {
-                planetsideVersion.Text = "Version " + versionInfo.FileVersion;
+                // TODO: add advanced version handling
+                int[] iParts = new int[4] { vi.FileMajorPart, vi.FileMinorPart, vi.FileBuildPart, vi.FilePrivatePart };
+                string[] parts = new string[4];
+
+                for(var i = 0; i < 4; i++)
+                {
+                    parts[i] = iParts[i].ToString();
+                }
+
+                planetsideVersion.Text = "Version " + string.Join(".", parts);
                 planetsideVersion.ForeColor = System.Drawing.Color.Green;
             }
             else
             {
-                planetsideVersion.Text = "Unknown version";
-                planetsideVersion.ForeColor = System.Drawing.Color.Yellow;
+                planetsideVersion.Text = "Missing version";
+                planetsideVersion.ForeColor = System.Drawing.Color.Red;
             }
 
             return true;

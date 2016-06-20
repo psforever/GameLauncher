@@ -59,5 +59,15 @@ namespace PSLauncher.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap vector_logo_psforever {
+            get {
+                object obj = ResourceManager.GetObject("vector-logo-psforever", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

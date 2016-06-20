@@ -304,7 +304,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(420, 350);
             this.Name = "LauncherForm";
-            this.Text = "PS1 GameLauncher";
+            this.Text = "PSForever Launcher";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LauncherForm_FormClosing);
             this.ResizeBegin += new System.EventHandler(this.LauncherForm_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.LauncherForm_ResizeEnd);

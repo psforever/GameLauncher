@@ -52,6 +52,9 @@ namespace PSLauncher
         public LauncherForm()
         {
             InitializeComponent();
+
+            this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+
 #if DEBUG
             Settings.Default.Reset();
             Console.SetOut(new Util.ControlWriter(this.ps_consoleOutput));
