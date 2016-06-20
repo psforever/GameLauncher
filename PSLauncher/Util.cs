@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 
 namespace PSLauncher
 {
@@ -57,43 +58,67 @@ namespace PSLauncher
     {
         public static string getDefaultPlanetSideDirectory()
         {
+            // paths are in order of newest (most likely to have the right planetside) to oldest
             Microsoft.Win32.RegistryKey key = null;
             string psFolder = "";
+            List<string> pathsToCheck = new List<String>();
 
             // non-steam install
+            // Known to be: C:\Users\Public\Daybreak Game Company\Installed Games\PlanetSide 2 Test\LaunchPad.exe
             key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\App Paths\LaunchPad.exe");
 
             if (key != null && key.GetValue("") != null)
             {
                 String defaultDirectory;
                 defaultDirectory = key.GetValue("").ToString();
+
+                Console.WriteLine("LaunchPad.exe key found {0}", defaultDirectory);
+
                 defaultDirectory = Path.GetDirectoryName(defaultDirectory);
 
                 // verify that we aren't mistakingly returning a PlanetSide 2 directory...
-                if (Directory.Exists(defaultDirectory) && checkDirForPlanetSide(defaultDirectory))
-                    return defaultDirectory;
-
+                pathsToCheck.Add(defaultDirectory);
+            
                 // try to go up a directory and find the PlanetSide folder
                 string upOne = Directory.GetParent(defaultDirectory).FullName;
                 psFolder = Path.Combine(upOne, "Planetside");
 
-                if (Directory.Exists(psFolder) && checkDirForPlanetSide(psFolder))
-                    return psFolder;
+                pathsToCheck.Add(psFolder);
+            }
+            else
+            {
+                Console.WriteLine("No LaunchPad.exe key found");
             }
 
-            // worth a shot!
-            psFolder = Path.Combine(ProgramFilesx86(), "Sony\\PlanetSide");
-
-            if (Directory.Exists(psFolder) && checkDirForPlanetSide(psFolder))
-                return psFolder;
-
-            // HACK: our last attempt. Should work on Win7 and above with and updated launcher
+            // HACK: Should work on Win7 and above
+            psFolder = "C:\\Users\\Public\\Daybreak Game Company\\Installed Games\\Planetside";
+            pathsToCheck.Add(psFolder);
+            
+            // HACK 2: our last attempt
             psFolder = "C:\\Users\\Public\\Sony Online Entertainment\\Installed Games\\Planetside";
+            pathsToCheck.Add(psFolder);
 
-            if (Directory.Exists(psFolder) && checkDirForPlanetSide(psFolder))
-                return psFolder;
+            // worth a shot! (for windows XP or old installs)
+            psFolder = Path.Combine(ProgramFilesx86(), "Sony\\PlanetSide");
+            pathsToCheck.Add(psFolder);
 
-            // give up
+            int i = 1;
+            foreach(var path in pathsToCheck)
+            {
+                Console.WriteLine("M{0} - {1}", i, path);
+
+                if (Directory.Exists(path) && checkDirForPlanetSide(path))
+                {
+                    Console.WriteLine("Path found using M{0}", i);
+                    return path;
+                }
+
+                i += 1;
+            }
+
+            Console.WriteLine("No default planetside.exe path found");
+
+            // give up :'(
             return "";
         }
 
@@ -111,6 +136,31 @@ namespace PSLauncher
             }
 
             return Environment.GetEnvironmentVariable("ProgramFiles");
+        }
+
+        // from https://stackoverflow.com/questions/18726852/redirecting-console-writeline-to-textbox
+        public class ControlWriter : TextWriter
+        {
+            private Control textbox;
+            public ControlWriter(Control textbox)
+            {
+                this.textbox = textbox;
+            }
+
+            public override void Write(char value)
+            {
+                textbox.Text += value;
+            }
+
+            public override void Write(string value)
+            {
+                textbox.Text += value;
+            }
+
+            public override Encoding Encoding
+            {
+                get { return Encoding.ASCII; }
+            }
         }
     }
 }

@@ -46,15 +46,16 @@ namespace PSLauncher
         Dictionary<LaunchDomain, string> domains = new Dictionary<LaunchDomain, string>()
         {
             { LaunchDomain.Live, "https://lpj.daybreakgames.com/ps/live" },
-            { LaunchDomain.PSForever, "https://login.psforever.net/" }
+            { LaunchDomain.PSForever, "https://login.psforever.net/psf/live/login" }
         };
 
         public LauncherForm()
         {
             InitializeComponent();
-
-            //if (Debugger.IsAttached)
-            //    Settings.Default.Reset();
+#if DEBUG
+            Settings.Default.Reset();
+            Console.SetOut(new Util.ControlWriter(this.ps_consoleOutput));
+#endif
 
             string psDefault = Util.getDefaultPlanetSideDirectory();
             
@@ -163,7 +164,7 @@ namespace PSLauncher
 
             if (!Util.checkDirForPlanetSide(path))
             {
-                setErrorMessage("Invalid planetside exe");
+                setErrorMessage("Invalid " + SettingsForm.PS_EXE_NAME);
                 return;
             }
 
@@ -477,7 +478,7 @@ namespace PSLauncher
                 JObject obj = JObject.Parse(text);
                 result = (string)obj["result"];
                 token = (string)obj["launchArgs"];
-                addLine(text);
+                //addLine(text);
             }
             catch (Newtonsoft.Json.JsonException x2)
             {
