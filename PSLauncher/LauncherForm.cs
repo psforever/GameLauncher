@@ -151,7 +151,9 @@ namespace PSLauncher
                 return;
             }
 
-            if(Settings.Default.ClearOutputOnLaunch)
+            setErrorMessage("");
+
+            if (Settings.Default.ClearOutputOnLaunch)
             {
                 this.ps_consoleOutput.Clear();
             }
@@ -174,15 +176,29 @@ namespace PSLauncher
             if (skipLauncher.Checked)
             {
                 // magic string to login to planetside from the actual game
-                startPlanetSide(psExe, Path.GetDirectoryName(psExe), "/K:StagingTest " + Settings.Default.ExtraArgs);
-            }
+                if(!startPlanetSide(psExe, Path.GetDirectoryName(psExe), "/K:StagingTest " + Settings.Default.ExtraArgs))
+                {
+                    gameStopped();
+                }
+                else
+                {
+                    gameRunning();
+                }
+            }   
             else
             {
                 startLaunching();
 
                 Task.Factory.StartNew(() =>
                 {
-                    this.doLogin();
+                    if(!this.doLogin())
+                    {
+                        gameStopped();
+                    }
+                    else
+                    {
+                        gameRunning();
+                    }
                 });
             }
         }
@@ -200,7 +216,7 @@ namespace PSLauncher
             return req.GetResponse() as HttpWebResponse;
         }
 
-        void doLogin()
+        bool doLogin()
         {
             long ts = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
@@ -222,12 +238,10 @@ namespace PSLauncher
             }
             catch (WebException x)
             {
-                addLine("Failed to gather initial session: " + x.Message);
-
                 if (x.Status != WebExceptionStatus.TrustFailure)
                 {
-                    stopLaunching();
-                    return;
+                    addLine("Failed to gather initial session: " + x.Message);
+                    return false;
                 }
 
                 DialogResult res = MessageBox.Show("DBG's HTTPS certificate has failed to verify. This means that their certificate has expired " +
@@ -236,8 +250,7 @@ namespace PSLauncher
 
                 if (res != DialogResult.Yes)
                 {
-                    stopLaunching();
-                    return;
+                    return false;
                 }
 
                 // WARNING: once we hit yes, all further SSL errors will be ignored
@@ -252,8 +265,7 @@ namespace PSLauncher
                 catch (WebException x2)
                 {
                     addLine("Failed to gather initial session: " + x2.Message);
-                    stopLaunching();
-                    return;
+                    return false;
                 }
             }
 
@@ -316,7 +328,7 @@ namespace PSLauncher
                     {
                         txt = "";
                         addLine("Login failed: " + x.Message);
-                        return;
+                        return false;
                     }
                 }
 
@@ -351,9 +363,8 @@ namespace PSLauncher
                     addLine("Error: " + errorDetail);
                     addLine(txt);
                 }
-
-                stopLaunching();
-                return;
+                
+                return false;
             }
 
             if (!r.GetResponseStream().CanRead)
@@ -361,8 +372,8 @@ namespace PSLauncher
                 setErrorMessage("Unknown error - see output window");
                 addLine("No login response received");
                 addLine("Status: " + r.StatusCode);
-                stopLaunching();
-                return;
+
+                return false;
             }
 
             StreamReader reader = new StreamReader(r.GetResponseStream());
@@ -391,8 +402,8 @@ namespace PSLauncher
                 addLine("Bad login response: " + result);
                 addLine("Status: " + r.StatusCode);
                 addLine(text);
-                stopLaunching();
-                return;
+
+                return false;
             }
             
 
@@ -455,8 +466,8 @@ namespace PSLauncher
                 addLine("Get token failure: " + x.Status);
                 addLine("Error: " + errorDetail);
                 addLine(txt);
-                stopLaunching();
-                return;
+
+                return false;
             }
 
             if (!r.GetResponseStream().CanRead)
@@ -464,8 +475,8 @@ namespace PSLauncher
                 setErrorMessage("Unknown error - see output window");
                 addLine("No login response received");
                 addLine("Status: " + r.StatusCode);
-                stopLaunching();
-                return;
+
+                return false;
             }
 
             reader = new StreamReader(r.GetResponseStream());
@@ -495,8 +506,8 @@ namespace PSLauncher
                 addLine("Bad token response: " + result);
                 addLine("Status: " + r.StatusCode);
                 addLine(text);
-                stopLaunching();
-                return;
+
+                return false;
             }
 
             addLine("PSWeb: got launch args " + token);
@@ -506,13 +517,11 @@ namespace PSLauncher
 
             if (ExtraLaunchArgs != String.Empty)
                 launch_args += " " + ExtraLaunchArgs;
-
-            startPlanetSide(psExe, path, launch_args);
             
-            return;
+            return startPlanetSide(psExe, path, launch_args);
         }
 
-        void startPlanetSide(string exe, string workingDir, string args)
+        bool startPlanetSide(string exe, string workingDir, string args)
         {
             psProcess = new Process();
 
@@ -527,12 +536,19 @@ namespace PSLauncher
             psProcess.EnableRaisingEvents = true;
 
             addLine("ProcessStart: \"" + exe + "\" " + args);
-            psProcess.Start();
+
+            if (!psProcess.Start())
+            {
+                addLine("ProcessStart: failed to start the planetside process! Make sure your planetside folder path is correct.");
+                return false;
+            }
+
+            addLine(String.Format("ProcessStart: planetside running as PID {0}", psProcess.Id));
 
             psProcess.BeginErrorReadLine();
             psProcess.BeginOutputReadLine();
 
-            gameRunning();
+            return true;
         }
 
         void ps_OutputDataReceived(object sender, DataReceivedEventArgs e)
