@@ -25,6 +25,7 @@ namespace PSLauncher
             planetsidePathTextField.Text = Settings.Default.PSPath;
             launchArgs.Text = Settings.Default.ExtraArgs;
             clearOnLaunch.Checked = Settings.Default.ClearOutputOnLaunch;
+            coreCombat.Checked = Settings.Default.CoreCombat;
 
             checkPath(Path.Combine(planetsidePathTextField.Text, PS_EXE_NAME), false);
         }
@@ -104,6 +105,18 @@ namespace PSLauncher
         private void button1_Click_1(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.OK;
+        }
+
+        private void coreCombat_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.Default.CoreCombat = this.coreCombat.Checked;
+        }
+
+        private void editServerList_Click(object sender, EventArgs e)
+        {
+            ServerList a = new ServerList();
+            a.StartPosition = FormStartPosition.CenterParent;
+            a.ShowDialog(this);
         }
     }
 }

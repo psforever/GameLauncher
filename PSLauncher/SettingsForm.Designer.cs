@@ -37,6 +37,8 @@
             this.findPTRDirDialogue = new System.Windows.Forms.FolderBrowserDialog();
             this.clearOnLaunch = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.coreCombat = new System.Windows.Forms.CheckBox();
+            this.editServerList = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label2
@@ -58,10 +60,10 @@
             this.selectDirectory.UseVisualStyleBackColor = true;
             this.selectDirectory.Click += new System.EventHandler(this.button1_Click);
             // 
-            // planetside2PathTextField
+            // planetsidePathTextField
             // 
             this.planetsidePathTextField.Location = new System.Drawing.Point(12, 33);
-            this.planetsidePathTextField.Name = "planetside2PathTextField";
+            this.planetsidePathTextField.Name = "planetsidePathTextField";
             this.planetsidePathTextField.ReadOnly = true;
             this.planetsidePathTextField.Size = new System.Drawing.Size(222, 20);
             this.planetsidePathTextField.TabIndex = 8;
@@ -69,7 +71,7 @@
             // 
             // launchArgs
             // 
-            this.launchArgs.Location = new System.Drawing.Point(12, 117);
+            this.launchArgs.Location = new System.Drawing.Point(10, 182);
             this.launchArgs.Name = "launchArgs";
             this.launchArgs.Size = new System.Drawing.Size(222, 20);
             this.launchArgs.TabIndex = 15;
@@ -78,7 +80,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(9, 98);
+            this.label10.Location = new System.Drawing.Point(7, 163);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(158, 13);
             this.label10.TabIndex = 16;
@@ -96,7 +98,7 @@
             // clearOnLaunch
             // 
             this.clearOnLaunch.AutoSize = true;
-            this.clearOnLaunch.Location = new System.Drawing.Point(13, 157);
+            this.clearOnLaunch.Location = new System.Drawing.Point(12, 123);
             this.clearOnLaunch.Name = "clearOnLaunch";
             this.clearOnLaunch.Size = new System.Drawing.Size(133, 17);
             this.clearOnLaunch.TabIndex = 26;
@@ -107,7 +109,7 @@
             // button1
             // 
             this.button1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.button1.Location = new System.Drawing.Point(91, 186);
+            this.button1.Location = new System.Drawing.Point(91, 226);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(62, 23);
             this.button1.TabIndex = 27;
@@ -115,11 +117,34 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click_1);
             // 
+            // coreCombat
+            // 
+            this.coreCombat.AutoSize = true;
+            this.coreCombat.Location = new System.Drawing.Point(12, 98);
+            this.coreCombat.Name = "coreCombat";
+            this.coreCombat.Size = new System.Drawing.Size(87, 17);
+            this.coreCombat.TabIndex = 28;
+            this.coreCombat.Text = "Core Combat";
+            this.coreCombat.UseVisualStyleBackColor = true;
+            this.coreCombat.CheckedChanged += new System.EventHandler(this.coreCombat_CheckedChanged);
+            // 
+            // editServerList
+            // 
+            this.editServerList.Location = new System.Drawing.Point(134, 94);
+            this.editServerList.Name = "editServerList";
+            this.editServerList.Size = new System.Drawing.Size(100, 23);
+            this.editServerList.TabIndex = 29;
+            this.editServerList.Text = "Edit Server List...";
+            this.editServerList.UseVisualStyleBackColor = true;
+            this.editServerList.Click += new System.EventHandler(this.editServerList_Click);
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(244, 211);
+            this.ClientSize = new System.Drawing.Size(244, 251);
+            this.Controls.Add(this.editServerList);
+            this.Controls.Add(this.coreCombat);
             this.Controls.Add(this.planetsideVersion);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.clearOnLaunch);
@@ -130,9 +155,9 @@
             this.Controls.Add(this.planetsidePathTextField);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(260, 250);
+            this.MaximumSize = new System.Drawing.Size(260, 290);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(260, 250);
+            this.MinimumSize = new System.Drawing.Size(260, 290);
             this.Name = "SettingsForm";
             this.Text = "Settings";
             this.ResumeLayout(false);
@@ -151,5 +176,7 @@
         private System.Windows.Forms.FolderBrowserDialog findPTRDirDialogue;
         private System.Windows.Forms.CheckBox clearOnLaunch;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.CheckBox coreCombat;
+        private System.Windows.Forms.Button editServerList;
     }
 }
