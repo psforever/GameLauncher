@@ -6,15 +6,15 @@ Created to assist the [PSForever](http://psforever.net/) project.
 
 Notable Features
 ================
-* DBG web login to bypass regular DBG launcher
 * Skip launcher (login through PlanetSide UI)
 * Debug output from PlanetSide process, which helps with development
 * Automatic planetside.exe detection
+* Automatic / manual server selection
+* Simpler interface with option to disable debug viewing
 
 Planned Features
 ================
-* Automatic / manual server selection
-* Simpler interface with option to disable debug viewing
+* Web login to avoid PlanetSide UI login
 
 License
 =======
