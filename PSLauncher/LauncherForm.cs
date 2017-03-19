@@ -59,6 +59,7 @@ namespace PSLauncher
             Settings.Default.Reset();
             Console.SetOut(new Util.ControlWriter(this.ps_consoleOutput));
 #endif
+            skipLauncher.Checked = Settings.Default.SkipLauncher;
 
             // Load server 
             loadServerSelection();
@@ -76,7 +77,6 @@ namespace PSLauncher
             }
 
             setConsoleWindowState(Settings.Default.OutputShown);
-            skipLauncher.Checked = Settings.Default.SkipLauncher;
         }
 
         private void LauncherForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -224,7 +224,11 @@ namespace PSLauncher
             }   
             else
             {
-                startLaunching();
+                setErrorMessage("Login disabled. Use skip launcher");
+                gameStopped();
+                return;
+
+                /*startLaunching();
 
                 Task.Factory.StartNew(() =>
                 {
@@ -236,7 +240,7 @@ namespace PSLauncher
                     {
                         gameRunning();
                     }
-                });
+                });*/
             }
         }
 
