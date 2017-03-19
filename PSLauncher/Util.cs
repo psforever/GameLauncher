@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PSLauncher.Properties;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -56,6 +57,32 @@ namespace PSLauncher
 
     public static class Util
     {
+        public static List<ServerEntry> LoadServerList()
+        {
+            List<ServerEntry> entries = new List<ServerEntry>();
+            StringCollection serverList = Settings.Default.ServerList;
+
+            foreach (String entry in serverList)
+            {
+                String[] tokens = entry.Split(',');
+
+                if (tokens.Length != 3)
+                {
+                    Console.WriteLine("LoadServerList: Failed to load server entry " + entry);
+                    continue;
+                }
+
+                ServerEntry newEntry = new ServerEntry();
+                newEntry.name = tokens[0];
+                newEntry.hostname = tokens[1];
+                newEntry.port = int.Parse(tokens[2]);
+
+                entries.Add(newEntry);
+            }
+
+            return entries;
+        }
+
         public static string getDefaultPlanetSideDirectory()
         {
             // paths are in order of newest (most likely to have the right planetside) to oldest
@@ -72,7 +99,7 @@ namespace PSLauncher
                 String defaultDirectory;
                 defaultDirectory = key.GetValue("").ToString();
 
-                Console.WriteLine("LaunchPad.exe key found {0}", defaultDirectory);
+                Console.WriteLine("PSDiscover: LaunchPad.exe key found {0}", defaultDirectory);
 
                 defaultDirectory = Path.GetDirectoryName(defaultDirectory);
 
@@ -87,7 +114,7 @@ namespace PSLauncher
             }
             else
             {
-                Console.WriteLine("No LaunchPad.exe key found");
+                Console.WriteLine("PSDiscover: No LaunchPad.exe key found");
             }
 
             // HACK: Should work on Win7 and above
@@ -105,18 +132,18 @@ namespace PSLauncher
             int i = 1;
             foreach(var path in pathsToCheck)
             {
-                Console.WriteLine("M{0} - {1}", i, path);
+                Console.WriteLine("PSDiscover: M{0} - {1}", i, path);
 
                 if (Directory.Exists(path) && checkDirForPlanetSide(path))
                 {
-                    Console.WriteLine("Path found using M{0}", i);
+                    Console.WriteLine("PSDiscover: Path found using M{0}", i);
                     return path;
                 }
 
                 i += 1;
             }
 
-            Console.WriteLine("No default planetside.exe path found");
+            Console.WriteLine("PSDiscover: No default planetside.exe path found!");
 
             // give up :'(
             return "";

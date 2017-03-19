@@ -13,15 +13,15 @@ using System.Diagnostics;
 
 namespace PSLauncher
 {
+    public struct ServerEntry
+    {
+        public string name;
+        public string hostname;
+        public int port;
+    }
+
     public partial class ServerList : Form
     {
-        struct ServerEntry
-        {
-            public string name;
-            public string hostname;
-            public int port;
-        }
-
         List<ServerEntry> entries = new List<ServerEntry>();
 
         public ServerList()
@@ -30,24 +30,9 @@ namespace PSLauncher
 
             this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
 
-            StringCollection serverList = Settings.Default.ServerList;
-
-            foreach(String entry in serverList)
+            foreach(ServerEntry entry in Util.LoadServerList())
             {
-                String [] tokens = entry.Split(',');
-
-                if(tokens.Length != 3)
-                {
-                    Debug.WriteLine("Failed to load server entry " + entry);
-                    continue;
-                }
-
-                ServerEntry newEntry = new ServerEntry();
-                newEntry.name = tokens[0];
-                newEntry.hostname = tokens[1];
-                newEntry.port = int.Parse(tokens[2]);
-
-                addEntry(newEntry);
+                addEntry(entry);
             }
         }
 
@@ -68,8 +53,6 @@ namespace PSLauncher
 
         private void portInput_KeyPress(object sender, KeyPressEventArgs e)
         {
-            Debug.WriteLine("Char: " + e.KeyChar.ToString());
-
             if(e.KeyChar >= '0' && e.KeyChar <= '9' || e.KeyChar == '\b')
             {
                 if(portInput.Text.Length >= 5 && e.KeyChar != '\b')
@@ -136,8 +119,6 @@ namespace PSLauncher
         {
             int selected = serverDisplay.SelectedIndex;
 
-            Debug.WriteLine("Move " + selected + " ^");
-
             if (selected == -1 || selected == 0)
                 return;
 
@@ -153,8 +134,6 @@ namespace PSLauncher
         private void moveDown_Click(object sender, EventArgs e)
         {
             int selected = serverDisplay.SelectedIndex;
-
-            Debug.WriteLine("Move " + selected + " v");
 
             if (selected == -1 || (selected+1) == entries.Count)
                 return;

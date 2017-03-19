@@ -108,5 +108,29 @@ namespace PSLauncher.Properties {
                 this["ServerList"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool GenerateClientINI {
+            get {
+                return ((bool)(this["GenerateClientINI"]));
+            }
+            set {
+                this["GenerateClientINI"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ServerSelection {
+            get {
+                return ((int)(this["ServerSelection"]));
+            }
+            set {
+                this["ServerSelection"] = value;
+            }
+        }
     }
 }

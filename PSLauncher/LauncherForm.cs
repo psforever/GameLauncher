@@ -60,6 +60,13 @@ namespace PSLauncher
             Console.SetOut(new Util.ControlWriter(this.ps_consoleOutput));
 #endif
 
+            // Load server 
+            loadServerSelection();
+
+            // Make sure selection is valid
+            if(Settings.Default.ServerSelection >= -1 && Settings.Default.ServerSelection < serverSelection.Items.Count)
+                serverSelection.SelectedIndex = Settings.Default.ServerSelection;
+
             string psDefault = Util.getDefaultPlanetSideDirectory();
             
             // first run with no settings or invalid starting path
@@ -173,10 +180,40 @@ namespace PSLauncher
                 return;
             }
 
+            // Build arguments
+            List<string> arguments = new List<string>();
+
+            if (skipLauncher.Checked)
+                arguments.Add("/K:StagingTest");
+
+            if (Settings.Default.CoreCombat)
+                arguments.Add("/CC");
+
+            if (Settings.Default.ExtraArgs != "")
+                arguments.Add(Settings.Default.ExtraArgs);
+
+            // Rewrite client.ini if selected
+            if(Settings.Default.GenerateClientINI)
+            {
+                string inipath = Path.Combine(Path.GetDirectoryName(psExe), "client.ini");
+                ClientINI ini = new ClientINI(inipath);
+
+                try
+                {
+                    ini.writeEntries(Util.LoadServerList(), serverSelection.SelectedIndex);
+                }
+                catch(IOException exp)
+                {
+                    setErrorMessage("Failed to write INI file");
+                    addLine(String.Format("ClientINI: error - '{0}' ({1})", exp.Message, inipath));
+                    return;
+                }
+            }
+
             if (skipLauncher.Checked)
             {
                 // magic string to login to planetside from the actual game
-                if(!startPlanetSide(psExe, Path.GetDirectoryName(psExe), "/K:StagingTest " + Settings.Default.ExtraArgs))
+                if(!startPlanetSide(psExe, Path.GetDirectoryName(psExe), String.Join(" ", arguments)))
                 {
                     gameStopped();
                 }
@@ -615,11 +652,12 @@ namespace PSLauncher
             a.ShowDialog(this);
         }
 
-        private void loginFormChanged(object sender, EventArgs e)
+        private void loginFormChangedUpdate()
         {
             if (gameState == GameState.Stopped)
             {
-                if (username.Text.Length > 0 && password.Text.Length > 0 || skipLauncher.Checked)
+                if ((username.Text.Length > 0 && password.Text.Length > 0 || skipLauncher.Checked) &&
+                    serverSelection.SelectedIndex != -1)
                     launchGame.Enabled = true;
                 else
                     launchGame.Enabled = false;
@@ -639,6 +677,11 @@ namespace PSLauncher
             }
         }
 
+        private void loginFormChanged(object sender, EventArgs e)
+        {
+            loginFormChangedUpdate();
+        }
+
         private void setConsoleWindowState(bool open)
         {
             if (!open)
@@ -646,9 +689,9 @@ namespace PSLauncher
                 oldSize = this.Size;
 
                 this.hideShowOutput.Text = "vv Show vv";
-                this.MinimumSize = this.MaximumSize = new System.Drawing.Size(420, 160);
+                this.MinimumSize = this.MaximumSize = new System.Drawing.Size(460, 160);
                 
-                this.Size = new System.Drawing.Size(420, 160);
+                this.Size = new System.Drawing.Size(460, 160);
 
                 this.WindowState = FormWindowState.Normal;
                 this.MaximizeBox = false;
@@ -657,7 +700,7 @@ namespace PSLauncher
             else
             {
                 this.hideShowOutput.Text = "^^ Hide ^^";
-                this.MinimumSize = new System.Drawing.Size(420, 350);
+                this.MinimumSize = new System.Drawing.Size(460, 350);
                 this.MaximumSize = new System.Drawing.Size(0, 0);
 
                 if (oldSize.IsEmpty)
@@ -699,11 +742,43 @@ namespace PSLauncher
             }
         }
 
+        private void loadServerSelection()
+        {
+            int index = serverSelection.SelectedIndex;
+
+            List<ServerEntry> entries = Util.LoadServerList();
+            serverSelection.Items.Clear();
+
+            foreach (ServerEntry entry in entries)
+            {
+                serverSelection.Items.Add(entry.name);
+            }
+
+            if (entries.Count > 0 && index != -1)
+            {
+                if (index + 1 >= entries.Count)
+                {
+                    serverSelection.SelectedIndex = entries.Count - 1;
+                }
+                else
+                {
+                    serverSelection.SelectedIndex = index;
+                }
+            }
+
+            loginFormChangedUpdate();
+
+            // Dont let us select a server without any servers!
+            serverSelection.Enabled = entries.Count != 0;
+        }
+
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SettingsForm a = new SettingsForm();
             a.StartPosition = FormStartPosition.CenterParent;
             a.ShowDialog(this);
+
+            loadServerSelection();
         }
 
         private void selectAll_Click(object sender, EventArgs e)
@@ -740,6 +815,14 @@ namespace PSLauncher
                 f.Write(data, 0, data.Length);
                 f.Close();
             }
+        }
+
+        private void serverSelection_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Settings.Default.ServerSelection = serverSelection.SelectedIndex;
+
+            // Update the login form as well
+            loginFormChangedUpdate();
         }
     }
 }

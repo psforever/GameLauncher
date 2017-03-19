@@ -26,6 +26,7 @@ namespace PSLauncher
             launchArgs.Text = Settings.Default.ExtraArgs;
             clearOnLaunch.Checked = Settings.Default.ClearOutputOnLaunch;
             coreCombat.Checked = Settings.Default.CoreCombat;
+            generateClientIni.Checked = Settings.Default.GenerateClientINI;
 
             checkPath(Path.Combine(planetsidePathTextField.Text, PS_EXE_NAME), false);
         }
@@ -117,6 +118,11 @@ namespace PSLauncher
             ServerList a = new ServerList();
             a.StartPosition = FormStartPosition.CenterParent;
             a.ShowDialog(this);
+        }
+
+        private void generateClientIni_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.Default.GenerateClientINI = generateClientIni.Checked;
         }
     }
 }

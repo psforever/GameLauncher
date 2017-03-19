@@ -87,7 +87,7 @@
             this.hostnameInput.Location = new System.Drawing.Point(11, 207);
             this.hostnameInput.Name = "hostnameInput";
             this.hostnameInput.Size = new System.Drawing.Size(144, 20);
-            this.hostnameInput.TabIndex = 3;
+            this.hostnameInput.TabIndex = 7;
             this.hostnameInput.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textInput_KeyPress);
             // 
             // portInput
@@ -95,7 +95,7 @@
             this.portInput.Location = new System.Drawing.Point(168, 207);
             this.portInput.Name = "portInput";
             this.portInput.Size = new System.Drawing.Size(50, 20);
-            this.portInput.TabIndex = 4;
+            this.portInput.TabIndex = 10;
             this.portInput.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.portInput_KeyPress);
             // 
             // deleteItem
@@ -108,7 +108,7 @@
             this.deleteItem.Location = new System.Drawing.Point(291, 95);
             this.deleteItem.Name = "deleteItem";
             this.deleteItem.Size = new System.Drawing.Size(24, 26);
-            this.deleteItem.TabIndex = 5;
+            this.deleteItem.TabIndex = 3;
             this.deleteItem.UseVisualStyleBackColor = false;
             this.deleteItem.Click += new System.EventHandler(this.deleteItem_Click);
             // 
@@ -127,7 +127,7 @@
             this.label2.Location = new System.Drawing.Point(165, 185);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
-            this.label2.TabIndex = 7;
+            this.label2.TabIndex = 8;
             this.label2.Text = "Port";
             // 
             // addButton
@@ -135,7 +135,7 @@
             this.addButton.Location = new System.Drawing.Point(230, 205);
             this.addButton.Name = "addButton";
             this.addButton.Size = new System.Drawing.Size(42, 23);
-            this.addButton.TabIndex = 8;
+            this.addButton.TabIndex = 11;
             this.addButton.Text = "Add";
             this.addButton.UseVisualStyleBackColor = true;
             this.addButton.Click += new System.EventHandler(this.addButton_Click);
@@ -155,7 +155,7 @@
             this.okButton.Location = new System.Drawing.Point(93, 239);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(62, 23);
-            this.okButton.TabIndex = 28;
+            this.okButton.TabIndex = 12;
             this.okButton.Text = "OK";
             this.okButton.UseVisualStyleBackColor = true;
             this.okButton.Click += new System.EventHandler(this.okButton_Click);
@@ -166,7 +166,7 @@
             this.label4.Location = new System.Drawing.Point(9, 131);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(69, 13);
-            this.label4.TabIndex = 30;
+            this.label4.TabIndex = 4;
             this.label4.Text = "Server Name";
             // 
             // serverNameInput
@@ -174,7 +174,7 @@
             this.serverNameInput.Location = new System.Drawing.Point(12, 153);
             this.serverNameInput.Name = "serverNameInput";
             this.serverNameInput.Size = new System.Drawing.Size(206, 20);
-            this.serverNameInput.TabIndex = 29;
+            this.serverNameInput.TabIndex = 5;
             this.serverNameInput.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textInput_KeyPress);
             // 
             // cancelButton
@@ -183,7 +183,7 @@
             this.cancelButton.Location = new System.Drawing.Point(173, 239);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(62, 23);
-            this.cancelButton.TabIndex = 31;
+            this.cancelButton.TabIndex = 13;
             this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);

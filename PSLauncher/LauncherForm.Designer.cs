@@ -31,6 +31,8 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LauncherForm));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.label1 = new System.Windows.Forms.Label();
+            this.serverSelection = new System.Windows.Forms.ComboBox();
             this.hideShowOutput = new System.Windows.Forms.Button();
             this.skipLauncher = new System.Windows.Forms.CheckBox();
             this.passwordLabel = new System.Windows.Forms.Label();
@@ -76,6 +78,8 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            this.splitContainer1.Panel1.Controls.Add(this.label1);
+            this.splitContainer1.Panel1.Controls.Add(this.serverSelection);
             this.splitContainer1.Panel1.Controls.Add(this.hideShowOutput);
             this.splitContainer1.Panel1.Controls.Add(this.skipLauncher);
             this.splitContainer1.Panel1.Controls.Add(this.passwordLabel);
@@ -90,18 +94,37 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.ps_consoleOutput);
-            this.splitContainer1.Size = new System.Drawing.Size(404, 287);
+            this.splitContainer1.Size = new System.Drawing.Size(444, 287);
             this.splitContainer1.SplitterDistance = this.splitContainer1.Panel1MinSize;
             this.splitContainer1.TabIndex = 0;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(202, 14);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(38, 13);
+            this.label1.TabIndex = 26;
+            this.label1.Text = "Server";
+            // 
+            // serverSelection
+            // 
+            this.serverSelection.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.serverSelection.FormattingEnabled = true;
+            this.serverSelection.Location = new System.Drawing.Point(246, 10);
+            this.serverSelection.Name = "serverSelection";
+            this.serverSelection.Size = new System.Drawing.Size(195, 21);
+            this.serverSelection.TabIndex = 3;
+            this.serverSelection.SelectedIndexChanged += new System.EventHandler(this.serverSelection_SelectedIndexChanged);
             // 
             // hideShowOutput
             // 
             this.hideShowOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.hideShowOutput.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.hideShowOutput.Location = new System.Drawing.Point(317, 69);
+            this.hideShowOutput.Location = new System.Drawing.Point(357, 69);
             this.hideShowOutput.Name = "hideShowOutput";
             this.hideShowOutput.Size = new System.Drawing.Size(84, 21);
-            this.hideShowOutput.TabIndex = 23;
+            this.hideShowOutput.TabIndex = 5;
             this.hideShowOutput.Text = "vv Show vv";
             this.hideShowOutput.UseVisualStyleBackColor = true;
             this.hideShowOutput.Click += new System.EventHandler(this.hideShowOutput_Click_1);
@@ -109,10 +132,10 @@
             // skipLauncher
             // 
             this.skipLauncher.AutoSize = true;
-            this.skipLauncher.Location = new System.Drawing.Point(205, 13);
+            this.skipLauncher.Location = new System.Drawing.Point(205, 71);
             this.skipLauncher.Name = "skipLauncher";
             this.skipLauncher.Size = new System.Drawing.Size(95, 17);
-            this.skipLauncher.TabIndex = 3;
+            this.skipLauncher.TabIndex = 4;
             this.skipLauncher.Text = "Skip Launcher";
             this.skipLauncher.UseVisualStyleBackColor = true;
             this.skipLauncher.CheckedChanged += new System.EventHandler(this.loginFormChanged);
@@ -198,8 +221,8 @@
             this.ps_consoleOutput.Name = "ps_consoleOutput";
             this.ps_consoleOutput.ReadOnly = true;
             this.ps_consoleOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.ps_consoleOutput.Size = new System.Drawing.Size(404, 188);
-            this.ps_consoleOutput.TabIndex = 1;
+            this.ps_consoleOutput.Size = new System.Drawing.Size(444, 188);
+            this.ps_consoleOutput.TabIndex = 0;
             this.ps_consoleOutput.WordWrap = false;
             // 
             // outputRightClick
@@ -256,8 +279,8 @@
             this.aboutToolStripMenuItem1});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(404, 24);
-            this.menuStrip1.TabIndex = 2;
+            this.menuStrip1.Size = new System.Drawing.Size(444, 24);
+            this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // settingsToolStripMenuItem
@@ -280,13 +303,13 @@
             // toolStripContainer1.ContentPanel
             // 
             this.toolStripContainer1.ContentPanel.Controls.Add(this.splitContainer1);
-            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(404, 287);
+            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(444, 287);
             this.toolStripContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.toolStripContainer1.LeftToolStripPanelVisible = false;
             this.toolStripContainer1.Location = new System.Drawing.Point(0, 0);
             this.toolStripContainer1.Name = "toolStripContainer1";
             this.toolStripContainer1.RightToolStripPanelVisible = false;
-            this.toolStripContainer1.Size = new System.Drawing.Size(404, 311);
+            this.toolStripContainer1.Size = new System.Drawing.Size(444, 311);
             this.toolStripContainer1.TabIndex = 3;
             this.toolStripContainer1.Text = "toolStripContainer1";
             // 
@@ -299,7 +322,7 @@
             this.AcceptButton = this.launchGame;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(404, 311);
+            this.ClientSize = new System.Drawing.Size(444, 311);
             this.Controls.Add(this.toolStripContainer1);
             this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(420, 350);
@@ -350,6 +373,8 @@
         private System.Windows.Forms.ToolStripMenuItem selectAll;
         private System.Windows.Forms.ToolStripMenuItem copy;
         private System.Windows.Forms.ToolStripMenuItem saveToFile;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox serverSelection;
     }
 }
 
