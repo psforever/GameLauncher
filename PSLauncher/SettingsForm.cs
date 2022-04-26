@@ -38,7 +38,6 @@ namespace PSLauncher
                 findPTRDirDialogue.SelectedPath = planetsidePathTextField.Text;
             
             DialogResult r = findPTRDirDialogue.ShowDialog(this);
-
             if (r == DialogResult.OK)
             {
                 // combine the folder name with the standard PS.exe name

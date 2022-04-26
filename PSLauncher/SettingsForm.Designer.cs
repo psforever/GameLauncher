@@ -34,7 +34,7 @@
             this.launchArgs = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.planetsideVersion = new System.Windows.Forms.Label();
-            this.findPTRDirDialogue = new System.Windows.Forms.FolderBrowserDialog();
+            this.findPTRDirDialogue = new Ookii.Dialogs.WinForms.VistaFolderBrowserDialog();
             this.clearOnLaunch = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
             this.coreCombat = new System.Windows.Forms.CheckBox();
@@ -186,7 +186,7 @@
         private System.Windows.Forms.TextBox launchArgs;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label planetsideVersion;
-        private System.Windows.Forms.FolderBrowserDialog findPTRDirDialogue;
+        private Ookii.Dialogs.WinForms.VistaFolderBrowserDialog findPTRDirDialogue;
         private System.Windows.Forms.CheckBox clearOnLaunch;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox coreCombat;
