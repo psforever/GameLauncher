@@ -187,7 +187,7 @@
             this.launchGame.TabIndex = 2;
             this.launchGame.Text = "Launch";
             this.launchGame.UseVisualStyleBackColor = false;
-            this.launchGame.Click += new System.EventHandler(this.button2_Click);
+            this.launchGame.Click += new System.EventHandler(this.launchGame_Click);
             // 
             // launchMessage
             // 
@@ -204,7 +204,7 @@
             // 
             this.spinner.Enabled = false;
             this.spinner.Image = ((System.Drawing.Image)(resources.GetObject("spinner.Image")));
-            this.spinner.Location = new System.Drawing.Point(114, 67);
+            this.spinner.Location = new System.Drawing.Point(22, 66);
             this.spinner.Name = "spinner";
             this.spinner.Size = new System.Drawing.Size(26, 24);
             this.spinner.TabIndex = 24;
@@ -232,13 +232,13 @@
             this.copy,
             this.saveToFile});
             this.outputRightClick.Name = "outputRightClick";
-            this.outputRightClick.Size = new System.Drawing.Size(165, 70);
+            this.outputRightClick.Size = new System.Drawing.Size(167, 70);
             // 
             // selectAll
             // 
             this.selectAll.Name = "selectAll";
             this.selectAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
-            this.selectAll.Size = new System.Drawing.Size(164, 22);
+            this.selectAll.Size = new System.Drawing.Size(166, 22);
             this.selectAll.Text = "Select All";
             this.selectAll.Click += new System.EventHandler(this.selectAll_Click);
             // 
@@ -247,14 +247,14 @@
             this.copy.Name = "copy";
             this.copy.ShortcutKeyDisplayString = "";
             this.copy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
-            this.copy.Size = new System.Drawing.Size(164, 22);
+            this.copy.Size = new System.Drawing.Size(166, 22);
             this.copy.Text = "Copy";
             this.copy.Click += new System.EventHandler(this.copy_Click);
             // 
             // saveToFile
             // 
             this.saveToFile.Name = "saveToFile";
-            this.saveToFile.Size = new System.Drawing.Size(164, 22);
+            this.saveToFile.Size = new System.Drawing.Size(166, 22);
             this.saveToFile.Text = "Save to file ...";
             this.saveToFile.Click += new System.EventHandler(this.saveToFile_Click);
             // 
