@@ -69,13 +69,7 @@ namespace PSLauncher
             //
             // init http client
             //
-            httpClient = new HttpClient(
-                new HttpClientHandler()
-                {
-                    AllowAutoRedirect = false,
-                    SslProtocols = System.Security.Authentication.SslProtocols.Tls13 | System.Security.Authentication.SslProtocols.Tls12,
-                }
-            )
+            httpClient = new HttpClient
             {
                 BaseAddress = new Uri(domains[domain]),
                 Timeout = TimeSpan.FromSeconds(DEFAULT_WEB_TIMEOUT)
