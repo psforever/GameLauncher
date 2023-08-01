@@ -73,7 +73,7 @@ namespace PSLauncher
                 new HttpClientHandler()
                 {
                     AllowAutoRedirect = false,
-                    SslProtocols = System.Security.Authentication.SslProtocols.Tls13,
+                    SslProtocols = System.Security.Authentication.SslProtocols.Tls13 | System.Security.Authentication.SslProtocols.Tls12,
                 }
             )
             {
