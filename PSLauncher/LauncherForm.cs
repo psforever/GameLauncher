@@ -272,7 +272,7 @@ namespace PSLauncher
             }   
             else
             {
-                Launch();
+                Launch(arguments);
             }
 
             return;
@@ -314,18 +314,13 @@ namespace PSLauncher
                 }
             }
 
-            void Launch()
+            void Launch(List<string> _arguments)
             {
                 startLaunching();
 
                 Task.Factory.StartNew(() =>
                 {
-                    // check file integrity
-                });
-
-                Task.Factory.StartNew(() =>
-                {
-                    if (!this.doLogin())
+                    if (!this.doLogin(_arguments))
                     {
                         gameStopped();
                     }
@@ -429,7 +424,7 @@ namespace PSLauncher
                     break;
 
                 default:
-                    errorMessage = "Please report to this error to the PSF Support on Discord\nError: " + errorResponse.Status;
+                    errorMessage = "Please report this error to the PSF Support on Discord\nError: " + errorResponse.Status;
                     break;
             }
 
@@ -467,7 +462,7 @@ namespace PSLauncher
             }
 
             var result = respVersion.Content.ReadAsStringAsync().Result;
-            var versionResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionResponse>(result);
+            var versionResponse = JsonConvert.DeserializeObject<VersionResponse>(result);
 
             if (versionResponse.Status != 0)
             {
@@ -483,8 +478,8 @@ namespace PSLauncher
             {
                 addLine("=====");
                 addLine("Could not compare launcher versions. Launching may fail.");
-                addLine(string.Format("Local version: {0} - latest version: {1}", localVersion, newestVersion));
-                addLine("Please update if there is a newer PSF Launcher version.");
+                addLine(string.Format("Local version: v{0} - latest version: v{1}", localVersion, newestVersion));
+                addLine("Please update if there is a newer version of PSF Launcher.");
                 addLine("=====");
 
                 return;
@@ -562,7 +557,7 @@ namespace PSLauncher
             }
 
             var result = respLogin.Content.ReadAsStringAsync().Result;
-            var loginResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<TokenResponse>(result);
+            var loginResponse = JsonConvert.DeserializeObject<TokenResponse>(result);
 
             if (loginResponse.Status != 0)
             {
@@ -597,7 +592,7 @@ namespace PSLauncher
             }
 
             var result = respValidateGet.Content.ReadAsStringAsync().Result;
-            var validateGetResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ValidationResponse>(result);
+            var validateGetResponse = JsonConvert.DeserializeObject<ValidationResponse>(result);
 
             if (validateGetResponse.Status != 0)
             {
@@ -679,7 +674,7 @@ namespace PSLauncher
             }
 
             var result = respValidatePost.Content.ReadAsStringAsync().Result;
-            var validatePostResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<TokenResponse>(result);
+            var validatePostResponse = JsonConvert.DeserializeObject<TokenResponse>(result);
 
             if (validatePostResponse.Status != 0)
             {
@@ -714,7 +709,7 @@ namespace PSLauncher
             }
 
             var result = respGameToken.Content.ReadAsStringAsync().Result;
-            var gameTokenResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<GameTokenResponse>(result);
+            var gameTokenResponse = JsonConvert.DeserializeObject<GameTokenResponse>(result);
 
             if (gameTokenResponse.Status != 0)
             {
@@ -728,7 +723,7 @@ namespace PSLauncher
             return true;
         }
 
-        bool doLogin()
+        bool doLogin(List<string> _arguments)
         {
             string path = Settings.Default.PSPath;
             string psExe = Path.GetFullPath(Path.Combine(path, SettingsForm.PS_EXE_NAME));
@@ -802,13 +797,9 @@ namespace PSLauncher
                 return false;
             }
 
-            string launch_args = "/K:" + gameToken;
-            string ExtraLaunchArgs = Settings.Default.ExtraArgs;
+            _arguments.Add("/K:" + gameToken);
 
-            if (ExtraLaunchArgs != String.Empty)
-                launch_args += " " + ExtraLaunchArgs;
-
-            return startPlanetSide(psExe, path, launch_args);
+            return startPlanetSide(psExe, path, String.Join(" ", _arguments));
         }
 
         bool startPlanetSide(string exe, string workingDir, string args)
