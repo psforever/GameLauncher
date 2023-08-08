@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using System.Security.Cryptography;
 
 namespace PSLauncher
 {
@@ -165,6 +166,58 @@ namespace PSLauncher
             return Environment.GetEnvironmentVariable("ProgramFiles");
         }
 
+        public static string CalculateFileHash(string _filePath)
+        {
+            using (var hashingAlgorithm = HashAlgorithm.Create(Program.hashingAlgoType.ToString()))
+            {
+                using (var fileHandle = File.OpenRead(_filePath))
+                {
+                    return CalculateFileHash(hashingAlgorithm, fileHandle);
+                }
+            }
+        }
+
+        public static string CalculateFileHash(FileStream _fileHandle)
+        {
+            using (var hashingAlgorithm = HashAlgorithm.Create(Program.hashingAlgoType.ToString()))
+            {
+                return CalculateFileHash(hashingAlgorithm, _fileHandle);
+            }
+        }
+
+        private static string CalculateFileHash(HashAlgorithm _hashingAlgorithm, FileStream _fileHandle)
+        {
+            const int bufferSize = 1 * 1000 * 1000; // 1MB
+
+            // read file in bigger buffer to improve hashing performance (slightly)
+            using (var stream2 = new BufferedStream(_fileHandle, bufferSize))
+            {
+                return BitConverter.ToString(_hashingAlgorithm.ComputeHash(stream2)).Replace("-", "").ToLower();
+            }
+        }
+
+        public static string CalculateStringHash(string _string)
+        {
+            using (var hashingAlgorithm = HashAlgorithm.Create(Program.hashingAlgoType.ToString()))
+            {
+                return CalculateStringHash(hashingAlgorithm, _string);
+            }
+        }
+
+        public static string CalculateStringHash(EHashingAlgoType _algoType, string _string)
+        {
+            using (var hashingAlgorithm = HashAlgorithm.Create(_algoType.ToString()))
+            {
+                return CalculateStringHash(hashingAlgorithm, _string);
+            }
+        }
+
+        private static string CalculateStringHash(HashAlgorithm _hashAlgorithm, string _string)
+        {
+            byte[] stringBytes = System.Text.Encoding.ASCII.GetBytes(_string);
+            return BitConverter.ToString(_hashAlgorithm.ComputeHash(stringBytes)).Replace("-", "").ToLower();
+        }
+
         // from https://stackoverflow.com/questions/18726852/redirecting-console-writeline-to-textbox
         public class ControlWriter : TextWriter
         {
@@ -188,6 +241,16 @@ namespace PSLauncher
             {
                 get { return Encoding.ASCII; }
             }
+        }
+
+        // https://stackoverflow.com/a/250400
+        public static DateTime UnixTimestampToDateTime( double unixTimestmap )
+        {
+            // Unix timestamp is seconds past epoch
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dateTime = dateTime.AddSeconds(unixTimestmap).ToLocalTime();
+
+            return dateTime;
         }
     }
 }

@@ -1,16 +1,12 @@
-﻿using Microsoft.Win32;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
 using PSLauncher.Properties;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -20,12 +16,16 @@ namespace PSLauncher
     public enum LaunchDomain
     {
         Live,
-        PSForever
+        PSForever,
+        Dev,
+        DevSSL
     }
 
     public enum GameState
     {
         Stopped,
+        Authenticating,
+        Validating,
         Launching,
         Running,
         Stopping
@@ -33,30 +33,59 @@ namespace PSLauncher
 
     public partial class LauncherForm : Form
     {
-        Process psProcess;
-        string USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; rv:31.0) Gecko/20100101 Firefox/31.0";
+        private HttpClient httpClient;
+        private Process psProcess;
 
-        int DEFAULT_WEB_TIMEOUT = 5000;
         bool bGameRunning = false;
+        int DEFAULT_WEB_TIMEOUT = 5;
         GameState gameState = GameState.Stopped;
-        System.Drawing.Size oldSize = new System.Drawing.Size(0, 0);
+        LaunchDomain domain = LaunchDomain.PSForever;
 
-        LaunchDomain domain = LaunchDomain.Live;
+        System.Drawing.Size oldSize = new System.Drawing.Size(0, 0);
 
         Dictionary<LaunchDomain, string> domains = new Dictionary<LaunchDomain, string>()
         {
-            { LaunchDomain.Live, "https://lpj.daybreakgames.com/ps/live" },
-            { LaunchDomain.PSForever, "https://login.psforever.net/psf/live/login" }
+            { LaunchDomain.Live, "https://lpj.daybreakgames.com/ps/live/" },
+            { LaunchDomain.PSForever, "https://login.psforever.net/psf/live/" },
+            { LaunchDomain.Dev, "http://localhost:9001/psf/live/" },
+            { LaunchDomain.DevSSL, "http://localhost:9001/psf/live/" }
+        };
+
+        Dictionary<LaunchDomain, string> userAgents = new Dictionary<LaunchDomain, string>()
+        {
+            { LaunchDomain.Live, "Mozilla/5.0 (Windows NT 6.1; rv:31.0) Gecko/20100101 Firefox/31.0" },
+            { LaunchDomain.PSForever, string.Format("PSF Launcher v{0}", Program.launcherVersion) },
+            { LaunchDomain.Dev, string.Format("PSF Launcher v{0}", Program.launcherVersion) },
+            { LaunchDomain.DevSSL, string.Format("PSF Launcher v{0}", Program.launcherVersion) }
         };
 
         public LauncherForm()
         {
+            //
+            // init form components
+            //
             InitializeComponent();
 
+            //
+            // init http client
+            //
+            httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(domains[domain]),
+                Timeout = TimeSpan.FromSeconds(DEFAULT_WEB_TIMEOUT)
+            };
+
+            httpClient.DefaultRequestHeaders.Clear();
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(userAgents[domain]);
+            httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+            //
+            // set form icon
+            //
             this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
 
 #if DEBUG
-            Settings.Default.Reset();
+            //Settings.Default.Reset();
             Console.SetOut(new Util.ControlWriter(this.ps_consoleOutput));
 #endif
             skipLauncher.Checked = Settings.Default.SkipLauncher;
@@ -81,7 +110,7 @@ namespace PSLauncher
 
         private void LauncherForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (this.bGameRunning)
+            if (this.bGameRunning && Settings.Default.OutputShown)
             {
                 DialogResult res = MessageBox.Show( "Are you sure you want to exit while managing PlanetSide PID " + psProcess.Id + "?" +
                     Environment.NewLine + "You won't see any debugging output if you do.", "Confirm exit", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
@@ -99,6 +128,14 @@ namespace PSLauncher
             gameState = GameState.Stopped;
         }
 
+        private void startAuthenticating()
+        {
+            setButtonState(GameState.Authenticating);
+            progressShown(true);
+
+            gameState = GameState.Authenticating;
+        }
+
         private void startLaunching()
         {
             setButtonState(GameState.Launching);
@@ -113,25 +150,61 @@ namespace PSLauncher
             {
                 switch (state)
                 {
+                    case GameState.Stopped:
+                        this.launchGame.BackColor = System.Drawing.Color.FromArgb(128, 255, 128);
+                        this.launchGame.Enabled = true;
+                        this.launchGame.Text = "Launch";
+
+                        // allow modification if launcher is not skipped
+                        if (!skipLauncher.Checked)
+                        {
+                            this.username.Enabled = true;
+                            this.password.Enabled = true;
+                        }
+                        
+                        break;
+
+                    case GameState.Authenticating:
+                        this.launchGame.BackColor = System.Drawing.Color.FromArgb(128, 128, 255);
+                        this.launchGame.Enabled = false;
+                        this.launchGame.Text = "Authenticating";
+
+                        // disallow modification because we are launching
+                        this.username.Enabled = false;
+                        this.password.Enabled = false;
+
+                        break;
+
+                    case GameState.Validating:
+                        this.launchGame.BackColor = System.Drawing.Color.FromArgb(128, 128, 255);
+                        this.launchGame.Enabled = false;
+                        this.launchGame.Text = "Validating";
+                        break;
+
                     case GameState.Launching:
                         this.launchGame.Enabled = false;
-                        this.launchGame.Text = "Launching...";
+                        this.launchGame.Text = "Launching";
                         break;
+
                     case GameState.Running:
                         this.launchGame.BackColor = System.Drawing.Color.FromArgb(255, 128, 128);
                         this.launchGame.Enabled = true;
                         this.launchGame.Text = "Kill";
                         break;
-                    case GameState.Stopped:
-                        this.launchGame.BackColor = System.Drawing.Color.FromArgb(128, 255, 128);
-                        this.launchGame.Enabled = true;
-                        this.launchGame.Text = "Launch";
-                        break;
+
                     case GameState.Stopping:
                         this.launchGame.Enabled = false;
                         this.launchGame.Text = "Killing...";
                         break;
                 }
+            });
+        }
+
+        private void setButtonValidationState(int counter, int fileCount)
+        {
+            this.SafeInvoke(a =>
+            {
+                this.launchGame.Text = string.Format("Validating {0}/{1}", counter, fileCount);
             });
         }
 
@@ -150,7 +223,7 @@ namespace PSLauncher
             });
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void launchGame_Click(object sender, EventArgs e)
         {
             if(gameState == GameState.Running) // kill command
             {
@@ -183,18 +256,36 @@ namespace PSLauncher
             // Build arguments
             List<string> arguments = new List<string>();
 
-            if (skipLauncher.Checked)
-                arguments.Add("/K:StagingTest");
-
             if (Settings.Default.CoreCombat)
                 arguments.Add("/CC");
 
             if (Settings.Default.ExtraArgs != "")
                 arguments.Add(Settings.Default.ExtraArgs);
 
-            // Rewrite client.ini if selected
-            if(Settings.Default.GenerateClientINI)
+            WriteClientINI();
+
+            if (skipLauncher.Checked)
             {
+                arguments.Add("/K:StagingTest");
+
+                LaunchStaging();
+            }   
+            else
+            {
+                Launch(arguments);
+            }
+
+            return;
+
+            //
+            // functions used only in this function
+            //
+
+            void WriteClientINI()
+            {
+                // Rewrite client.ini if selected
+                if (!Settings.Default.GenerateClientINI) return;
+                    
                 string inipath = Path.Combine(Path.GetDirectoryName(psExe), "client.ini");
                 ClientINI ini = new ClientINI(inipath);
 
@@ -202,7 +293,7 @@ namespace PSLauncher
                 {
                     ini.writeEntries(Util.LoadServerList(), serverSelection.SelectedIndex);
                 }
-                catch(IOException exp)
+                catch (IOException exp)
                 {
                     setErrorMessage("Failed to write INI file");
                     addLine(String.Format("ClientINI: error - '{0}' ({1})", exp.Message, inipath));
@@ -210,10 +301,10 @@ namespace PSLauncher
                 }
             }
 
-            if (skipLauncher.Checked)
+            void LaunchStaging()
             {
                 // magic string to login to planetside from the actual game
-                if(!startPlanetSide(psExe, Path.GetDirectoryName(psExe), String.Join(" ", arguments)))
+                if (!startPlanetSide(psExe, Path.GetDirectoryName(psExe), String.Join(" ", arguments)))
                 {
                     gameStopped();
                 }
@@ -221,18 +312,15 @@ namespace PSLauncher
                 {
                     gameRunning();
                 }
-            }   
-            else
-            {
-                setErrorMessage("Login disabled. Use skip launcher");
-                gameStopped();
-                return;
+            }
 
-                /*startLaunching();
+            void Launch(List<string> _arguments)
+            {
+                startLaunching();
 
                 Task.Factory.StartNew(() =>
                 {
-                    if(!this.doLogin())
+                    if (!this.doLogin(_arguments))
                     {
                         gameStopped();
                     }
@@ -240,326 +328,478 @@ namespace PSLauncher
                     {
                         gameRunning();
                     }
-                });*/
+                });
             }
         }
 
-        HttpWebResponse netGetSession(string endpoint, CookieContainer cookies)
+        class DefaultResponse
         {
-            string hostname = domains[domain];
-            HttpWebRequest req = WebRequest.Create(hostname + endpoint) as HttpWebRequest;
-            req.CookieContainer = cookies;
-            req.CookieContainer.MaxCookieSize = 4000;
-            req.Method = "GET";
-            req.UserAgent = USER_AGENT;
-            req.Timeout = DEFAULT_WEB_TIMEOUT;
+            public int Status { get; set; }
+        };
 
-            return req.GetResponse() as HttpWebResponse;
+        class ErrorResponse : DefaultResponse
+        {
+            //[JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+            public string ErrorText { get; set; }
         }
 
-        bool doLogin()
+        class VersionResponse : DefaultResponse
         {
-            long ts = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            public Int64 ReleaseDate { get; set; }
+            public string VersionString { get; set; }
+        }
 
+        class TokenResponse : DefaultResponse
+        {
+            public string Token { get; set; }
+        }
+
+        class ValidationResponse : DefaultResponse
+        {
+            public string[] Files { get; set; }
+        }
+
+        class GameTokenResponse : DefaultResponse
+        {
+            public string GameToken { get; set; }
+        }
+
+        class LoginRequestBody
+        {
+            public string Username { get; set; }
+            public string Password { get; set; }
+            public string Launcher { get; set; }
+            public int Mode { get; set; }
+        }
+
+        class ValidateRequestBody
+        {
+            public string Launcher { get; set; }
+            public string Files { get; set; }
+        }
+
+        void handleErrorResponse(ref string _errorBody)
+        {
+            var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(_errorBody);
+            string errorMessage;
+            addLine("=====");
+            addLine("The launcher received an error:");
+
+            switch(errorResponse.Status)
+            {
+                case 100:
+                    errorMessage = "Launcher Update required.";
+                    break;
+
+                case 101:
+                    errorMessage = "Launcher is corrupted, please download the latest PSF Launcher.";
+                    break;
+
+                case 102:
+                    errorMessage = "Launcher token expired, please retry.";
+                    break;
+
+                case 103:
+                    errorMessage = "Gamefiles are corrupted, please replace them.";
+                    break;
+
+                case 104:
+                    errorMessage = "Launcher is no longer supported, please download the latest PSF Launcher.";
+                    break;
+
+                case 200:
+                    errorMessage = "This account does not yet support Launcher login, please sign in via \"Skip Launcher\" once.";
+                    break;
+
+                case 201:
+                    errorMessage = "Wrong Username or Password.";
+                    break;
+
+                case 202:
+                    errorMessage = "This account is inactive, please contact the PSF Support on Discord.";
+                    break;
+
+                case 300:
+                    errorMessage = "There has been a database error, please try again later.";
+                    break;
+
+                default:
+                    errorMessage = "Please report this error to the PSF Support on Discord\nError: " + errorResponse.Status;
+                    break;
+            }
+
+            // print the launcher message
+            addLine(errorMessage);
+
+            // print the message from the error response
+            if ( errorResponse.ErrorText.Length != 0 )
+            {
+                addLine(errorResponse.ErrorText);
+            }
+
+            addLine("=====");
+        }
+
+        void checkLauncherVersion()
+        {
+            addLine("Checking for new PSF Launcher version...");
+
+            HttpResponseMessage respVersion;
+            try
+            {
+                respVersion = httpClient.GetAsync("version").Result;
+            }
+            catch
+            {
+                addLine("Error: Version GET did not return");
+                return;
+            }
+
+            if (!respVersion.IsSuccessStatusCode)
+            {
+                addLine("Error: Version GET status " + respVersion.StatusCode);
+                return;
+            }
+
+            var result = respVersion.Content.ReadAsStringAsync().Result;
+            var versionResponse = JsonConvert.DeserializeObject<VersionResponse>(result);
+
+            if (versionResponse.Status != 0)
+            {
+                handleErrorResponse(ref result);
+
+                return;
+            }
+
+            var newestVersion = new List<string>(versionResponse.VersionString.Split('.'));
+            var localVersion = new List<string>(Program.launcherVersion.Split('.'));
+
+            if ( newestVersion.Count != localVersion.Count )
+            {
+                addLine("=====");
+                addLine("Could not compare launcher versions. Launching may fail.");
+                addLine(string.Format("Local version: v{0} - latest version: v{1}", localVersion, newestVersion));
+                addLine("Please update if there is a newer version of PSF Launcher.");
+                addLine("=====");
+
+                return;
+            }
+
+            bool newerVersionAvailable = false;
+            for (int i = 0; i < newestVersion.Count; i++)
+            {
+                var nv = int.Parse(newestVersion[i]);
+                var lv = int.Parse(localVersion[i]);
+
+                if (lv < nv)
+                {
+                    newerVersionAvailable = true;
+                    break;
+                }
+            }
+
+            if ( newerVersionAvailable )
+            {
+                DateTime parsedTime = Util.UnixTimestampToDateTime(versionResponse.ReleaseDate);
+
+                addLine("There is a newer version of the PSF Launcher. Launching may fail.");
+
+                addLine(
+                    string.Format(
+                        "Version information: v{0} released {1}",
+                        versionResponse.VersionString,
+                        parsedTime.ToLocalTime().ToLongDateString()
+                    )
+                );
+
+                addLine("=====");
+            }
+            else
+            {
+                addLine("PSF Launcher is on the latest version.");
+            }
+
+            addLine("");
+
+            return;
+        }
+
+        bool sendLoginData()
+        {
+            var username = this.username.Text;
+            var password = this.password.Text;
+            var passwordHash = Util.CalculateStringHash(EHashingAlgoType.SHA256, username + password);
+
+            var loginRequestBody = new LoginRequestBody
+            {
+                Username = this.username.Text,
+                Password = passwordHash,
+                Launcher = Program.launcherHash,
+                Mode = 0
+            };
+
+            HttpResponseMessage respLogin;
+            try
+            {
+                respLogin = httpClient.PostAsJsonAsync("login", loginRequestBody).Result;
+            }
+            catch (Exception e)
+            {
+                addLine("Error: Login POST did not return");
+                addLine(e.InnerException.Message);
+                return false;
+            }
+
+            if (!respLogin.IsSuccessStatusCode)
+            {
+                addLine("Error: Login GET status " + respLogin.StatusCode);
+                return false;
+            }
+
+            var result = respLogin.Content.ReadAsStringAsync().Result;
+            var loginResponse = JsonConvert.DeserializeObject<TokenResponse>(result);
+
+            if (loginResponse.Status != 0)
+            {
+                handleErrorResponse(ref result);
+
+                return false;
+            }
+
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginResponse.Token);
+
+            return true;
+        }
+
+        bool getFilesToValidate(ref List<string> _filesToValidate)
+        {
+            HttpResponseMessage respValidateGet;
+            try
+            {
+                respValidateGet = httpClient.GetAsync("validate").Result;
+            }
+            catch (Exception e)
+            {
+                addLine("Error: Validate GET did not return");
+                addLine(e.Message);
+                return false;
+            }
+
+            if (!respValidateGet.IsSuccessStatusCode)
+            {
+                addLine("Error: Validate GET status " + respValidateGet.StatusCode);
+                return false;
+            }
+
+            var result = respValidateGet.Content.ReadAsStringAsync().Result;
+            var validateGetResponse = JsonConvert.DeserializeObject<ValidationResponse>(result);
+
+            if (validateGetResponse.Status != 0)
+            {
+                handleErrorResponse(ref result);
+
+                return false;
+            }
+
+            _filesToValidate.AddRange(validateGetResponse.Files);
+
+            return true;
+        }
+
+        bool validateFiles(List<string>_filesToValidate, ref string _fileHashResult)
+        {
+            string basePath = Settings.Default.PSPath;
+            List<string> fileHashes = new List<string>();
+
+            for (int index = 0; index < _filesToValidate.Count; index++)
+            {
+                setButtonValidationState(index + 1, _filesToValidate.Count);
+
+                string filePath = _filesToValidate[index];
+
+                // get absolute path
+                var absPath = Path.GetFullPath(Path.Combine(basePath, filePath));
+
+                // make sure path is within planetside directory
+                if (!absPath.StartsWith(basePath))
+                {
+                    addLine("Error: Filepath for validation is outside of planetside directory");
+                    return false;
+                }
+
+                FileStream fileHandle;
+                try
+                {
+                    fileHandle = File.OpenRead(absPath);
+                }
+                catch
+                {
+                    addLine("Error: Required file not found: " + filePath);
+                    return false;
+                }
+
+                fileHashes.Add(Util.CalculateFileHash(fileHandle));
+
+                fileHandle.Close();
+            }
+
+            _fileHashResult = Util.CalculateStringHash(string.Join("", fileHashes));
+
+            return true;
+        }
+
+        bool sendValidationResult(string _hashResult)
+        {
+            var validateResponseBody = new ValidateRequestBody
+            {
+                Launcher = Program.launcherHash,
+                Files = _hashResult
+            };
+
+            HttpResponseMessage respValidatePost;
+            try
+            {
+                respValidatePost = httpClient.PostAsJsonAsync("validate", validateResponseBody).Result;
+            }
+            catch
+            {
+                addLine("Error: Validate POST did not return");
+                return false;
+            }
+
+            if (!respValidatePost.IsSuccessStatusCode)
+            {
+                addLine("Error: Validate POST status " + respValidatePost.StatusCode);
+                return false;
+            }
+
+            var result = respValidatePost.Content.ReadAsStringAsync().Result;
+            var validatePostResponse = JsonConvert.DeserializeObject<TokenResponse>(result);
+
+            if (validatePostResponse.Status != 0)
+            {
+                handleErrorResponse(ref result);
+
+                return false;
+            }
+
+            // update to validated token
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", validatePostResponse.Token);
+
+            return true;
+        }
+
+        bool getGameToken(ref string _gameToken)
+        {
+            HttpResponseMessage respGameToken;
+            try
+            {
+                respGameToken = httpClient.GetAsync("gametoken").Result;
+            }
+            catch
+            {
+                addLine("Error: GameToken GET did not return");
+                return false;
+            }
+
+            if (!respGameToken.IsSuccessStatusCode)
+            {
+                addLine("Error: GameToken GET status " + respGameToken.StatusCode);
+                return false;
+            }
+
+            var result = respGameToken.Content.ReadAsStringAsync().Result;
+            var gameTokenResponse = JsonConvert.DeserializeObject<GameTokenResponse>(result);
+
+            if (gameTokenResponse.Status != 0)
+            {
+                handleErrorResponse(ref result);
+
+                return false;
+            }
+
+            _gameToken = gameTokenResponse.GameToken;
+
+            return true;
+        }
+
+        bool doLogin(List<string> _arguments)
+        {
             string path = Settings.Default.PSPath;
-            string psExe = Path.Combine(path, SettingsForm.PS_EXE_NAME);
+            string psExe = Path.GetFullPath(Path.Combine(path, SettingsForm.PS_EXE_NAME));
 
-            /////////////////////////////////////////////////////////////////
-            // Step 1: Establish Session ID
-            /////////////////////////////////////////////////////////////////
+            // clear previous login token
+            httpClient.DefaultRequestHeaders.Authorization = null;
 
-            String endpoint = domains[domain];
-            CookieContainer reqCookies = new CookieContainer();
-            HttpWebRequest req;
-            HttpWebResponse r;
-
-            try
+            if ( !psExe.StartsWith(path) )
             {
-                r = netGetSession("/?t=43323", reqCookies);
-            }
-            catch (WebException x)
-            {
-                if (x.Status != WebExceptionStatus.TrustFailure)
-                {
-                    addLine("Failed to gather initial session: " + x.Message);
-                    return false;
-                }
-
-                DialogResult res = MessageBox.Show("DBG's HTTPS certificate has failed to verify. This means that their certificate has expired " +
-                    "or you may be getting Man-in-the-middled (attacked). If you are under attack, your credentials could be lost. Continue regardless?",
-                    "Certificate error", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-                if (res != DialogResult.Yes)
-                {
-                    return false;
-                }
-
-                // WARNING: once we hit yes, all further SSL errors will be ignored
-                // https://stackoverflow.com/questions/2675133/c-sharp-ignore-certificate-errors
-                ServicePointManager.ServerCertificateValidationCallback +=
-                    (sender, cert, chain, sslPolicyErrors) => true;
-
-                try
-                {
-                    r = netGetSession("/?t=43323", reqCookies);
-                }
-                catch (WebException x2)
-                {
-                    addLine("Failed to gather initial session: " + x2.Message);
-                    return false;
-                }
-            }
-
-            // Note: we must manually add secure cookies and CookieContainer is crap
-            // See http://thomaskrehbiel.com/post/1690-cookiecontainer_httpwebrequest_and_secure_cookies/
-
-            reqCookies.Add(new Uri(endpoint), r.Cookies);
-
-            addLine("PSWeb: session started");
-            r.Close();
-
-            /////////////////////////////////////////////////////////////////
-            // Step 2: Try logging in
-            /////////////////////////////////////////////////////////////////
-
-            req = WebRequest.Create(endpoint + "/login?t=43323") as HttpWebRequest;
-            req.CookieContainer = reqCookies;
-            req.Method = "POST";
-            req.UserAgent = USER_AGENT;
-            req.Timeout = DEFAULT_WEB_TIMEOUT;
-            req.Headers.Add("X-Requested-With", "XMLHttpRequest");
-            req.Headers.Add("Origin", "https://lp.soe.com");
-
-            req.ContentType = "application/x-www-form-urlencoded";
-            req.Referer = endpoint + "/?t=43323";
-
-            NameValueCollection query = new NameValueCollection();
-            query.Add("username", username.Text);
-            query.Add("password", password.Text);
-            query.Add("rememberPassword", "false");
-            query.Add("ts", ts.ToString());
-
-            var postdata = Encoding.ASCII.GetBytes(query.ToQueryString());
-            //addLine(query.ToQueryString());
-
-            req.ContentLength = postdata.Length;
-
-            using (var stream = req.GetRequestStream())
-            {
-                stream.Write(postdata, 0, postdata.Length);
-            }
-
-            try
-            {
-                r = req.GetResponse() as HttpWebResponse;
-            }
-            catch (WebException x)
-            {
-                string txt;
-
-                using (HttpWebResponse respExcept = (HttpWebResponse)x.Response)
-                { 
-                    if (respExcept != null && respExcept.GetResponseStream().CanRead)
-                    {
-                        StreamReader r2 = new StreamReader(respExcept.GetResponseStream());
-                        txt = r2.ReadToEnd();
-                        respExcept.Close();
-                    }
-                    else
-                    {
-                        txt = "";
-                        addLine("Login failed: " + x.Message);
-                        return false;
-                    }
-                }
-
-                string errorDetail = "";
-
-                try
-                {
-                    JObject obj2 = JObject.Parse(txt);
-                    errorDetail = (string)obj2["error"];
-                }
-                catch (Newtonsoft.Json.JsonException x2)
-                {
-                    errorDetail = "Json parse error: " + x2.Message;
-                }
-
-                if (errorDetail == "INVALID_ACCOUNT_ID") // not sure if we still get this...
-                {
-                    setErrorMessage("Unknown username");
-                }
-                else if (errorDetail == "NEED_PASSWORD_RESET")
-                {
-                    setErrorMessage("Your account needs a password reset");
-                }
-                else if (errorDetail == "BAD_LOGIN")
-                {
-                    setErrorMessage("Bad password or username");
-                }
-                else // unrecognized!
-                {
-                    setErrorMessage("Unknown error - see output window");
-                    addLine("Login failure: " + x.Status);
-                    addLine("Error: " + errorDetail);
-                    addLine(txt);
-                }
-                
+                addLine("Error: planetside.exe outside of planetside directory: " + psExe);
                 return false;
             }
 
-            if (!r.GetResponseStream().CanRead)
-            {
-                setErrorMessage("Unknown error - see output window");
-                addLine("No login response received");
-                addLine("Status: " + r.StatusCode);
+            addLine("");
+            addLine("Start launching");
+            addLine("");
 
+            // start authentication
+            setButtonState(GameState.Authenticating);
+
+            //
+            // get current launcher version
+            //
+            checkLauncherVersion();
+
+            //
+            // send login data
+            //
+            if ( !sendLoginData() )
+            {
                 return false;
             }
 
-            StreamReader reader = new StreamReader(r.GetResponseStream());
-            string text = reader.ReadToEnd();
-
-            //addLine(r.Headers["Set-Cookie"]);
-            reqCookies.Add(new Uri(endpoint), r.Cookies);
-
-            string result = "";
-            r.Close();
-            addLine("PSWeb: logged in");
-
-            try
+            //
+            // get file validation info
+            //
+            List<string> filesToValidate = new List<string>();
+            if ( !getFilesToValidate(ref filesToValidate) )
             {
-                JObject obj = JObject.Parse(text);
-                result = (string)obj["result"];
-            }
-            catch (Newtonsoft.Json.JsonException x2)
-            {
-                result = "Json parse error: " + x2.Message;
-            }
-
-            if (result != "SUCCESS")
-            {
-                setErrorMessage("Unknown error - see output window");
-                addLine("Bad login response: " + result);
-                addLine("Status: " + r.StatusCode);
-                addLine(text);
-
-                return false;
-            }
-            
-
-            /////////////////////////////////////////////////////////////////
-            // Step 3: Fetch the login token
-            /////////////////////////////////////////////////////////////////
-
-            req = WebRequest.Create(endpoint + "/get_play_session?t=43323") as HttpWebRequest;
-            req.CookieContainer = reqCookies;
-            req.Method = "GET";
-            req.UserAgent = USER_AGENT;
-            req.Timeout = DEFAULT_WEB_TIMEOUT;
-            req.Headers.Add("Origin", "https://lp.soe.com");
-            req.Referer = endpoint + "/login?t=43323";
-            req.Headers.Add("X-Requested-With", "XMLHttpRequest");
-            req.Accept = "*/*";
-
-            try
-            {
-                r = req.GetResponse() as HttpWebResponse;
-            }
-            catch (WebException x)
-            {
-                string txt;
-
-                using (HttpWebResponse respExcept = (HttpWebResponse)x.Response)
-                {
-                    if (respExcept != null && respExcept.GetResponseStream().CanRead)
-                    {
-                        StreamReader r2 = new StreamReader(respExcept.GetResponseStream());
-                        txt = r2.ReadToEnd();
-                    }
-                    else
-                    {
-                        txt = "";
-                    }
-                }
-
-                string errorDetail = "";
-
-                try
-                {
-                    JObject obj2 = JObject.Parse(txt);
-                    errorDetail = (string)obj2["result"];
-                }
-                catch (Newtonsoft.Json.JsonException x2)
-                {
-                    errorDetail = "Json parse error: " + x2.Message;
-                }
-
-                if (errorDetail == "RE_LOGIN")
-                {
-                    setErrorMessage("Failed to fetch token: bad login");
-                }
-                else // unrecognized!
-                {
-                    setErrorMessage("Unknown error - see output window");
-                }
-
-                addLine("Get token failure: " + x.Status);
-                addLine("Error: " + errorDetail);
-                addLine(txt);
-
                 return false;
             }
 
-            if (!r.GetResponseStream().CanRead)
-            {
-                setErrorMessage("Unknown error - see output window");
-                addLine("No login response received");
-                addLine("Status: " + r.StatusCode);
+            //
+            // validate files
+            //
+            setButtonState(GameState.Validating);
 
+            string hashResult = "";
+            if ( !validateFiles(filesToValidate, ref hashResult) )
+            {
                 return false;
             }
 
-            reader = new StreamReader(r.GetResponseStream());
-            text = reader.ReadToEnd();
-
-            result = "";
-            r.Close();
-
-            string token = "";
-
-            try
+            //
+            // send validtation result
+            //
+            if ( !sendValidationResult(hashResult) )
             {
-                JObject obj = JObject.Parse(text);
-                result = (string)obj["result"];
-                token = (string)obj["launchArgs"];
-                //addLine(text);
-            }
-            catch (Newtonsoft.Json.JsonException x2)
-            {
-                result = "Json parse error: " + x2.Message;
-                token = "";
-            }
-
-            if (result != "SUCCESS")
-            {
-                setErrorMessage("Failed to get token");
-                addLine("Bad token response: " + result);
-                addLine("Status: " + r.StatusCode);
-                addLine(text);
-
                 return false;
             }
 
-            addLine("PSWeb: got launch args " + token);
+            // finished validating
+            setButtonState(GameState.Launching);
 
-            string launch_args = token;
-            string ExtraLaunchArgs = Settings.Default.ExtraArgs;
+            //
+            // get game token
+            //
+            string gameToken = "";
+            if ( !getGameToken(ref gameToken) )
+            {
+                return false;
+            }
 
-            if (ExtraLaunchArgs != String.Empty)
-                launch_args += " " + ExtraLaunchArgs;
-            
-            return startPlanetSide(psExe, path, launch_args);
+            _arguments.Add("/K:" + gameToken);
+
+            return startPlanetSide(psExe, path, String.Join(" ", _arguments));
         }
 
         bool startPlanetSide(string exe, string workingDir, string args)
@@ -576,7 +816,11 @@ namespace PSLauncher
             psProcess.OutputDataReceived += new DataReceivedEventHandler(ps_OutputDataReceived);
             psProcess.EnableRaisingEvents = true;
 
-            addLine("ProcessStart: \"" + exe + "\" " + args);
+            addLine(String.Format("ProcessStart: \"{0}\" {1}", exe, args));
+
+            addLine("");
+            addLine("LAUNCHING");
+            addLine("");
 
             if (!psProcess.Start())
             {
@@ -638,13 +882,11 @@ namespace PSLauncher
                 {
                     this.spinner.Visible = true;
                     this.spinner.Enabled = true;
-                    this.launchGame.Visible = false;
                 }
                 else
                 {
                     this.spinner.Visible = false;
                     this.spinner.Enabled = false;
-                    this.launchGame.Visible = true;
                 }
             });
         }
